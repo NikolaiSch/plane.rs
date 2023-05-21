@@ -77,9 +77,8 @@ pub enum Application {
     Json,
     Mp4,
     OctetStream,
-    Pdf,
-    XGzip,
-    Zip
+    Zip,
+    Unknown(String)
 }
 
 pub enum Audio {
@@ -105,4 +104,36 @@ pub enum Text {
 pub enum Video {
     Mpeg,
     Quicktime
+}
+
+impl FromStr for MimeType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut mime_string = s.split("/");
+        let mime = match mime_string.next().unwrap() {
+            "application" => {
+                match mime_string.next().unwrap() {
+                    "javascript" => {
+                        MimeType::Application(Application::Javascript)
+                    }
+                    "json" => MimeType::Application(Application::Json),
+                    "mp4" => MimeType::Application(Application::Mp4),
+                    "octet-stream" => {
+                        MimeType::Application(Application::OctetStream)
+                    }
+                    "zip" => MimeType::Application(Application::Zip),
+                    x => {
+                        MimeType::Application(Application::Unknown(
+                            x.to_string()
+                        ))
+                    }
+                }
+            }
+
+            _ => return Err(())
+        };
+
+        Ok(mime)
+    }
 }

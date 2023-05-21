@@ -6,10 +6,15 @@ use super::{
     route::{
         Handler,
         HandlerPub,
-        Route
+        HashRoute,
+        Route,
+        RouteHandler
     }
 };
-use crate::enums::errors::RouteError;
+use crate::enums::{
+    errors::RouteError,
+    request_opts::Method
+};
 
 impl Handler for Route {
     fn handle(
@@ -24,12 +29,11 @@ impl Handler for Route {
         &self,
         req: &Request
     ) -> Result<(), anyhow::Error> {
-        let path: bool = (req.path)
-            .clone()
+        let path: bool = Some((req.route).clone())
             .is_some_and(|p: String| return p == self.path);
 
         if path {
-            let method = (req.method).clone().unwrap() == self.method;
+            let method = (req.method) == self.method;
             match method {
                 true => return Ok(()),
                 false => {
@@ -62,5 +66,25 @@ impl Hash for Route {
     ) {
         self.path.hash(state);
         self.method.hash(state);
+    }
+}
+
+impl HashRoute {
+    pub fn new(
+        method: Method,
+        path: String
+    ) -> HashRoute {
+        return HashRoute { path, method };
+    }
+
+    pub fn to_route(
+        &self,
+        handler: RouteHandler
+    ) -> Route {
+        return Route {
+            path: self.path.to_string(),
+            method: self.method.clone(),
+            handler
+        };
     }
 }

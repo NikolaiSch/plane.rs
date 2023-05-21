@@ -8,7 +8,7 @@ use crate::{
     }
 };
 
-type RouteHandler = &'static (dyn Fn(&Request) -> Response);
+pub type RouteHandler = &'static (dyn Fn(&Request) -> Response);
 
 pub(crate) trait Handler {
     fn handle(
@@ -28,14 +28,14 @@ pub trait HandlerPub {
     ) -> Option<Response>;
 }
 
-#[derive(Hash)]
+#[derive(Hash, PartialEq, PartialOrd, Ord, Eq)]
 pub struct HashRoute {
-    pub path:   &'static str,
+    pub path:   String,
     pub method: Method
 }
 
 pub struct Route {
-    pub(crate) path:   &'static str,
+    pub(crate) path:   String,
     pub(crate) method: Method,
 
     pub(crate) handler: RouteHandler

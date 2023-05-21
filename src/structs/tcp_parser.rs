@@ -1,45 +1,30 @@
 use std::{
     io::Read,
-    net::TcpStream
+    net::TcpStream,
+    str::FromStr
 };
 
 use anyhow::Result;
 
+use super::request::Request;
 use crate::enums::request_opts::{
     Encoding,
     Header,
-    Headers,
+    Locale,
     Method
 };
 
 pub struct Parser {
     stream: TcpStream,
 
-    data: ParsedData
-}
-
-pub struct ParsedData {
-    method: Method,
-    route:  String,
-
-    headers: Headers
-}
-
-impl Default for ParsedData {
-    fn default() -> Self {
-        return ParsedData {
-            method:  Method::UNSET,
-            route:   "".to_string(),
-            headers: vec![]
-        };
-    }
+    pub data: Request
 }
 
 impl Parser {
     pub fn new(stream: TcpStream) -> Parser {
         Parser {
             stream,
-            data: ParsedData::default()
+            data: Request::default()
         }
     }
 
@@ -51,20 +36,19 @@ impl Parser {
 
         let mut first_line = lines.next().unwrap().split(" ");
         match first_line.next().unwrap() {
-            "GET" => self.data.method = Method::GET,
-            "POST" => self.data.method = Method::POST,
+            "GET" => self.data.method = (Method::GET),
+            "POST" => self.data.method = (Method::POST),
             _ => panic!("malformed req: e1")
         }
 
         self.data.route = first_line.next().unwrap().to_string();
 
         while let Some(line) = lines.next() {
-            if let Some((key, val)) = line.split_once(":") {
-                match key {
+            if let Some((key, mut val)) = line.split_once(":") {
+                val = val.trim();
+                let header = match key {
                     "User-Agent" => {
-                        self.data
-                            .headers
-                            .push(Header::UserAgent(val.trim().to_string()));
+                        Some(Header::UserAgent(val.trim().to_string()))
                     }
                     "Accept-Encoding" => {
                         let mut encodings = vec![];
@@ -77,15 +61,21 @@ impl Parser {
                             encodings.push(v);
                         }
 
-                        self.data
-                            .headers
-                            .push(Header::AcceptEncoding(encodings))
+                        Some(Header::AcceptEncoding(encodings))
                     }
-                    _ => {}
+                    "Accept-Language" => {
+                        Some(Header::AcceptLanguage(
+                            Locale::from_str(val).unwrap()
+                        ))
+                    }
+                    _ => None
+                };
+
+                if let Some(x) = header {
+                    self.data.client.headers.push(x)
                 }
             }
         }
-
-        todo!()
+        Ok(())
     }
 }

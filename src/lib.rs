@@ -6,7 +6,13 @@ pub(crate) mod traits;
 
 pub mod prelude {
     pub use crate::{
-        enums::config::ServerOpts::*,
-        structs::server::Plane
+        enums::{
+            config::ServerOpts::*,
+            request_opts::Method::*
+        },
+        structs::{
+            response::Response,
+            server::Plane
+        }
     };
 }
