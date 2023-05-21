@@ -24,6 +24,8 @@ use crate::{
         ip::IPType,
         request_opts::Method
     },
+    prelude::Response,
+    structs::response::Httpify,
     traits::validate::{
         Validate,
         ValidationResult
@@ -100,8 +102,13 @@ impl Plane {
 
                 let res = (route.handler)(&parser.data);
                 println!("returning response");
+
                 stream
-                    .write(res.data.as_bytes())
+                    .write(
+                        Response::default()
+                            .to_http_string()
+                            .as_bytes()
+                    )
                     .unwrap();
             }
         }

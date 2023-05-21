@@ -69,7 +69,8 @@ pub enum MimeType {
     Model,
     Text(Text),
     Video(Video),
-    Multipart
+    Multipart,
+    Unknown(String)
 }
 
 pub enum Application {
