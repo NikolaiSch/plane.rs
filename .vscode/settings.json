@@ -1,0 +1,7 @@
+{
+    "rust-analyzer.showUnlinkedFileNotification": false,
+    "explorer.fileNesting.patterns": {
+        "Cargo.toml": "Cargo.lock",
+        "*.rs": "${capture}_impl.rs"
+    }
+}
