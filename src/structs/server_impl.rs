@@ -66,8 +66,7 @@ impl Plane {
                 // stream.read_to_string(data).unwrap();
 
                 let mut parser = tcp_parser::Parser::new(stream);
-                dbg!(1);
-                dbg!(parser.parse_stream().unwrap());
+                parser.parse_stream().unwrap();
             }
         }
         return Ok(());

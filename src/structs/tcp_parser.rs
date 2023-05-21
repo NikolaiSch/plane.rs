@@ -58,16 +58,13 @@ impl Parser {
 
         self.data.route = first_line.next().unwrap().to_string();
 
-        for line in lines {
-            while let Some((key, val)) = line.split_once(":") {
-                dbg!(&key, &val);
+        while let Some(line) = lines.next() {
+            if let Some((key, val)) = line.split_once(":") {
                 match key {
                     "User-Agent" => {
                         self.data
                             .headers
-                            .push(Header::UserAgent(val.to_string()));
-
-                        dbg!("matched user-agent");
+                            .push(Header::UserAgent(val.trim().to_string()));
                     }
                     "Accept-Encoding" => {
                         let mut encodings = vec![];
