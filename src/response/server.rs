@@ -1,10 +1,20 @@
+use std::net::TcpListener;
+
+use super::{
+    config::ServerConfig,
+    route::RouteMap
+};
+
+pub struct Plane {
+    pub config:   ServerConfig,
+    pub handlers: RouteMap,
+
+    pub tcp: Option<TcpListener>
+}
+
 use std::{
     collections::HashMap,
-    io::{
-        BufRead,
-        Read,
-        Write
-    },
+    io::Write,
     net::TcpListener
 };
 
@@ -18,10 +28,7 @@ use super::{
     },
     route_impl::Handle,
     server::Plane,
-    tcp_parser::{
-        self,
-        RequestParser
-    }
+    tcp_parser::RequestParser
 };
 use crate::{
     enums::{
@@ -29,7 +36,6 @@ use crate::{
         ip::IPType,
         request_opts::Method
     },
-    prelude::Response,
     structs::response::Httpify,
     traits::validate::{
         Validate,
@@ -90,7 +96,7 @@ impl Plane {
                 for line in res.to_http() {
                     dbg!(&line);
                     let w = writeln!(stream, "{}", line.trim());
-                    if let Err(x) = w {
+                    if let Err(_x) = w {
                         stream.flush().unwrap();
                     }
                 }

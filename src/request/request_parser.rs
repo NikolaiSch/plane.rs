@@ -1,12 +1,9 @@
 use std::{
     io::{
         BufRead,
-        BufReader,
-        Lines,
-        Read
+        BufReader
     },
     net::TcpStream,
-    ops::Deref,
     str::FromStr
 };
 
@@ -21,7 +18,6 @@ use crate::enums::request_opts::{
     Method
 };
 
-// type StringLines = ;
 pub struct RequestParser {
     inner:   Vec<String>,
     pub req: Request

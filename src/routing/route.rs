@@ -1,28 +1,22 @@
-use std::{
-    collections::HashMap,
-    error::Error,
-    hash::Hash
-};
+pub type RouteHandler = &'static (dyn Fn(&Request) -> Response);
+pub type RouteMap = HashMap<Route, RouteHandler>;
 
-use anyhow::Result;
-
-use super::{
-    request::Request,
-    response::Response,
-    route::{
-        Route,
-        RouteHandler,
-        RouteMap
-    }
-};
-use crate::enums::{
-    errors::RouteError,
-    request_opts::Method
-};
+#[derive(Hash, PartialEq, PartialOrd, Ord, Eq, Debug)]
+pub enum Route {
+    Standard { path: String, method: Method },
+    Fallback
+}
 
 impl Route {
     pub fn new(method: Method, path: String) -> Route {
         return Route::Standard { path, method };
+    }
+
+    fn from_request(req: &Request) -> Self {
+        Route::Standard {
+            path:   req.route.clone(),
+            method: req.method.clone()
+        }
     }
 }
 
@@ -51,14 +45,5 @@ impl Handle<Route, RouteHandler> for RouteMap {
             return Ok(handler(req));
         }
         Err(())
-    }
-}
-
-impl Route {
-    fn from_request(req: &Request) -> Self {
-        Route::Standard {
-            path:   req.route.clone(),
-            method: req.method.clone()
-        }
     }
 }

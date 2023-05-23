@@ -2,9 +2,7 @@ use std::str::FromStr;
 
 use super::request::Request;
 use crate::enums::request_opts::{
-    HTTPStatus,
-    Headers,
-    Method
+    HTTPStatus
 };
 
 pub trait Httpify {
