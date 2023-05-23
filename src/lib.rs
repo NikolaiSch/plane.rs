@@ -11,7 +11,10 @@ pub mod prelude {
             request_opts::Method::*
         },
         structs::{
-            response::Response,
+            response::{
+                Response,
+                Status
+            },
             server::Plane
         }
     };

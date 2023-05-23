@@ -6,6 +6,7 @@ use crate::traits::validate::{
     ValidationResult
 };
 
+#[derive(Debug)]
 pub enum IPType {
     Unassigned,
 
@@ -19,10 +20,8 @@ impl IPType {
             IPType::Unassigned => None,
 
             IPType::Address(x) => {
-                let out_string = x
-                    .to_owned()
-                    .map(|ip_part| ip_part.to_string())
-                    .join(".");
+                let out_string =
+                    x.to_owned().map(|ip_part| ip_part.to_string()).join(".");
                 Some(out_string)
             }
 

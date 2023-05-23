@@ -7,12 +7,14 @@ use crate::enums::{
     }
 };
 
+#[derive(Debug)]
 pub struct Client {
-    pub ip:       IPType,
-    pub headers:  Headers,
-    http_version: HTTP
+    pub ip:           IPType,
+    pub headers:      Headers,
+    pub http_version: HTTP
 }
 
+#[derive(Debug)]
 pub struct Request {
     pub client: Client,
 

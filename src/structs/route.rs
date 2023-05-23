@@ -13,7 +13,7 @@ use crate::{
 pub type RouteHandler = &'static (dyn Fn(&Request) -> Response);
 pub type RouteMap = HashMap<Route, RouteHandler>;
 
-#[derive(Hash, PartialEq, PartialOrd, Ord, Eq)]
+#[derive(Hash, PartialEq, PartialOrd, Ord, Eq, Debug)]
 pub enum Route {
     Standard { path: String, method: Method },
     Fallback

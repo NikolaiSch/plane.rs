@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     io::{
+        BufRead,
         Read,
         Write
     },
@@ -15,8 +16,12 @@ use super::{
         Route,
         RouteHandler
     },
+    route_impl::Handle,
     server::Plane,
-    tcp_parser
+    tcp_parser::{
+        self,
+        RequestParser
+    }
 };
 use crate::{
     enums::{
@@ -65,13 +70,11 @@ impl Plane {
         &mut self,
         method: Method,
         path: &'static str,
-        route: RouteHandler
+        handler: RouteHandler
     ) -> Result<&mut Plane> {
-        let hash_route = Route::new(method, path.to_string());
-        let route = hash_route.to_route(route);
+        let route = Route::new(method, path.to_string());
 
-        self.handlers.insert(hash_route, route);
-
+        self.handlers.insert(route, handler);
         return Ok(self);
     }
 
@@ -79,20 +82,14 @@ impl Plane {
         if let Some(x) = &self.tcp {
             for stream_res in x.incoming() {
                 let mut stream = stream_res?;
-                let mut parser = tcp_parser::Parser::new(&mut stream);
-                parser.parse_stream()?;
 
-                let hr = Route::new(
-                    parser.data.method.clone(),
-                    parser.data.route.clone()
-                );
-
-                let route = self.handlers.get(&hr).unwrap();
-
-                let res = (route.handler)(&parser.data);
+                let mut req = RequestParser::new(stream.try_clone()?);
+                req.parse()?;
+                let res = self.handlers.execute_handler(&req.req).unwrap();
 
                 for line in res.to_http() {
-                    let w = writeln!(stream, "{}", line);
+                    dbg!(&line);
+                    let w = writeln!(stream, "{}", line.trim());
                     if let Err(x) = w {
                         stream.flush().unwrap();
                     }

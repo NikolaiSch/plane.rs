@@ -1,5 +1,12 @@
-use std::str::FromStr;
+use std::{
+    fmt::{
+        Display,
+        Pointer
+    },
+    str::FromStr
+};
 
+#[derive(Debug)]
 pub enum Header {
     UserAgent(String),
     AcceptLanguage(Locale),
@@ -9,7 +16,7 @@ pub enum Header {
 
 pub type Headers = Vec<Header>;
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Debug)]
 pub enum Method {
     Unassigned,
 
@@ -17,6 +24,7 @@ pub enum Method {
     POST
 }
 
+#[derive(Debug)]
 pub enum HTTP {
     Unassigned,
 
@@ -26,6 +34,7 @@ pub enum HTTP {
     V3
 }
 
+#[derive(Debug)]
 pub enum Encoding {
     Unassigned,
 
@@ -37,6 +46,7 @@ pub enum Encoding {
     Asterix
 }
 
+#[derive(Debug)]
 pub enum MimeType {
     Application(Application),
     Audio(Audio),
@@ -49,7 +59,7 @@ pub enum MimeType {
     Unknown(String)
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct Locale {
     language: String,
     country:  String
@@ -84,6 +94,7 @@ impl FromStr for Encoding {
     }
 }
 
+#[derive(Debug)]
 pub enum Application {
     Javascript,
     Json,
@@ -92,19 +103,19 @@ pub enum Application {
     Zip,
     Unknown(String)
 }
-
+#[derive(Debug)]
 pub enum Audio {
     XMidi,
     XWav
 }
-
+#[derive(Debug)]
 pub enum Image {
     Bmp,
     Gif,
     Jpeg,
     Tiff
 }
-
+#[derive(Debug)]
 pub enum Text {
     Html,
     Plain,
@@ -112,7 +123,7 @@ pub enum Text {
     Css,
     Csv
 }
-
+#[derive(Debug)]
 pub enum Video {
     Mpeg,
     Quicktime
@@ -139,5 +150,46 @@ impl FromStr for MimeType {
         };
 
         Ok(mime)
+    }
+}
+
+impl FromStr for Method {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "GET" => Ok(Method::GET),
+            "POST" => Ok(Method::POST),
+            _ => Err(())
+        }
+    }
+}
+
+impl FromStr for HTTP {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "HTTP/1.0" => Ok(HTTP::V1_0),
+            "HTTP/1.1" => Ok(HTTP::V1_1),
+            "HTTP/2" => Ok(HTTP::V2),
+            "HTTP/3" => Ok(HTTP::V3),
+            _ => Err(())
+        }
+    }
+}
+
+impl Display for HTTP {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            HTTP::V1_0 => "HTTP/1.0",
+            HTTP::V1_1 => "HTTP/1.1",
+            HTTP::V2 => "HTTP/2",
+            HTTP::V3 => "HTTP/3",
+
+            HTTP::Unassigned => return Err(std::fmt::Error)
+        };
+
+        f.write_str(s)
     }
 }

@@ -7,13 +7,13 @@ use super::{
     config::ServerConfig,
     route::{
         Route,
-        Route
+        RouteMap
     }
 };
 
 pub struct Plane {
     pub config:   ServerConfig,
-    pub handlers: ,
+    pub handlers: RouteMap,
 
     pub tcp: Option<TcpListener>
 }

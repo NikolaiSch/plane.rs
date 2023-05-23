@@ -12,8 +12,7 @@ use super::{
     route::{
         Route,
         RouteHandler,
-        RouteMap,
-        Routes
+        RouteMap
     }
 };
 use crate::enums::{
@@ -27,10 +26,10 @@ impl Route {
     }
 }
 
-trait Handle<K, V> {
+pub trait Handle<K, V> {
     fn get_handler(&self, route: K) -> Option<V>;
 
-    fn execute_handler(&self, route: K, req: &Request) -> Result<Response, ()>;
+    fn execute_handler(&self, req: &Request) -> Result<Response, ()>;
 }
 
 impl Handle<Route, RouteHandler> for RouteMap {
@@ -44,16 +43,22 @@ impl Handle<Route, RouteHandler> for RouteMap {
     }
 
     // Result<Response>
-    fn execute_handler(
-        &self,
-        route: Route,
-        req: &Request
-    ) -> Result<Response, ()> {
+    fn execute_handler(&self, req: &Request) -> Result<Response, ()> {
+        let route = Route::from_request(&req);
         let handler_opt = self.get_handler(route);
 
         if let Some(handler) = handler_opt {
             return Ok(handler(req));
         }
         Err(())
+    }
+}
+
+impl Route {
+    fn from_request(req: &Request) -> Self {
+        Route::Standard {
+            path:   req.route.clone(),
+            method: req.method.clone()
+        }
     }
 }

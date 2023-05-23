@@ -1,6 +1,10 @@
+use std::str::FromStr;
+
+use super::request::Request;
 use crate::enums::request_opts::{
     Headers,
-    Method
+    Method,
+    HTTP
 };
 
 pub trait Httpify {
@@ -10,6 +14,17 @@ pub trait Httpify {
 pub struct Response {
     pub status:  Status,
     pub content: Content
+}
+
+pub struct Status {
+    pub http_version: HTTP,
+    pub code:         u16,
+    pub message:      String
+}
+
+pub struct Content {
+    pub mime_type: String,
+    pub data:      String
 }
 
 impl Default for Response {
@@ -35,20 +50,10 @@ impl Httpify for Response {
     }
 }
 
-pub struct Status {
-    http_version: String,
-    code:         u16,
-    message:      String
-}
-
 impl Status {
-    pub fn new(
-        http_version: String,
-        code: u16,
-        message: String
-    ) -> Self {
+    pub fn new(http_version: String, code: u16, message: String) -> Self {
         return Status {
-            http_version,
+            http_version: HTTP::from_str(&http_version).unwrap(),
             code,
             message
         };
@@ -64,18 +69,8 @@ impl Httpify for Status {
     }
 }
 
-pub struct Content {
-    pub ty:   String,
-    pub data: String
-}
-
 impl Content {
-    fn new(
-        ty: String,
-        data: String
-    ) -> Self {
-        return Self { ty, data };
-    }
+    fn new(ty: String, data: String) -> Self { return Self { ty, data }; }
 }
 
 impl Httpify for Content {
@@ -88,5 +83,18 @@ impl Httpify for Content {
         content.push(format!("{}", self.data));
 
         content
+    }
+}
+
+impl From<Request> for Response {
+    fn from(value: Request) -> Self {
+        Response {
+            status:  Status {
+                http_version: value.client.http_version,
+                code:         0,
+                message:      "".to_string()
+            },
+            content: {}
+        }
     }
 }
