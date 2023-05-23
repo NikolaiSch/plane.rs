@@ -6,7 +6,7 @@ fn main() -> Result<()> {
 
     plane
         .set(Host("127.0.0.1"))?
-        .set(Port(7575))?
+        .set(Port(7574))?
         .route(GET, "/", &|x| Response::default())?
         .takeoff();
 

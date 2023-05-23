@@ -12,9 +12,9 @@ use crate::{
 impl ServerConfig {
     pub fn new() -> Self {
         return Self {
-            ip_addr:      IPType::NotAssigned,
-            port:         0,
-            subdirectory: None
+            ip_addr:  IPType::Unassigned,
+            port:     0,
+            fallback: None
         };
     }
 

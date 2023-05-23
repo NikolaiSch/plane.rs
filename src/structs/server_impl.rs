@@ -12,7 +12,7 @@ use anyhow::Result;
 use super::{
     config::ServerConfig,
     route::{
-        HashRoute,
+        Route,
         RouteHandler
     },
     server::Plane,
@@ -43,24 +43,22 @@ impl Plane {
         };
     }
 
-    pub fn set(
-        &mut self,
-        opt: ServerOpts
-    ) -> Result<&mut Plane> {
+    pub fn set(&mut self, opt: ServerOpts) -> Result<&mut Plane> {
         match opt {
             ServerOpts::Host(ip) => {
                 self.config.ip_addr = ip.parse::<IPType>()?;
-                Ok(self)
             }
             ServerOpts::Port(port) => {
                 self.config.port = port;
-                Ok(self)
             }
-            ServerOpts::Subdirectory(path) => {
-                self.config.subdirectory = path;
-                Ok(self)
+            ServerOpts::Fallback(Some(route)) => {
+                self.config.fallback = Some(route);
+            }
+            ServerOpts::Fallback(None) => {
+                self.config.fallback = None;
             }
         }
+        Ok(self)
     }
 
     pub fn route(
@@ -69,7 +67,7 @@ impl Plane {
         path: &'static str,
         route: RouteHandler
     ) -> Result<&mut Plane> {
-        let hash_route = HashRoute::new(method, path.to_string());
+        let hash_route = Route::new(method, path.to_string());
         let route = hash_route.to_route(route);
 
         self.handlers.insert(hash_route, route);
@@ -79,21 +77,12 @@ impl Plane {
 
     fn event_loop(&self) -> Result<()> {
         if let Some(x) = &self.tcp {
-            loop {
-                let (mut stream, client_addr) = match x.accept() {
-                    Ok(x) => x,
-                    Err(e) => {
-                        return Err(e.into());
-                    }
-                };
-                // let data = &mut String::new();
-                // stream.read_to_string(data).unwrap();
+            for stream_res in x.incoming() {
+                let mut stream = stream_res?;
+                let mut parser = tcp_parser::Parser::new(&mut stream);
+                parser.parse_stream()?;
 
-                let mut parser =
-                    tcp_parser::Parser::new(stream.try_clone().unwrap());
-                parser.parse_stream().unwrap();
-
-                let hr = HashRoute::new(
+                let hr = Route::new(
                     parser.data.method.clone(),
                     parser.data.route.clone()
                 );
@@ -101,15 +90,13 @@ impl Plane {
                 let route = self.handlers.get(&hr).unwrap();
 
                 let res = (route.handler)(&parser.data);
-                println!("returning response");
 
-                stream
-                    .write(
-                        Response::default()
-                            .to_http_string()
-                            .as_bytes()
-                    )
-                    .unwrap();
+                for line in res.to_http() {
+                    let w = writeln!(stream, "{}", line);
+                    if let Err(x) = w {
+                        stream.flush().unwrap();
+                    }
+                }
             }
         }
         return Ok(());
@@ -128,7 +115,5 @@ impl Plane {
 }
 
 impl Default for Plane {
-    fn default() -> Self {
-        self::Plane::board()
-    }
+    fn default() -> Self { self::Plane::board() }
 }

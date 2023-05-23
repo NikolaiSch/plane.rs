@@ -7,24 +7,26 @@ use crate::traits::validate::{
 };
 
 pub enum IPType {
-    NotAssigned,
+    Unassigned,
 
     Address([u8; 4]),
-    Host(String)
+    Hostname(String)
 }
 
 impl IPType {
     pub fn get_addr(&self) -> Option<String> {
         match self {
-            IPType::NotAssigned => None,
+            IPType::Unassigned => None,
 
             IPType::Address(x) => {
-                let out_string =
-                    x.to_owned().map(|ip_part| ip_part.to_string()).join(".");
+                let out_string = x
+                    .to_owned()
+                    .map(|ip_part| ip_part.to_string())
+                    .join(".");
                 Some(out_string)
             }
 
-            IPType::Host(x) => Some(x.to_owned())
+            IPType::Hostname(x) => Some(x.to_owned())
         }
     }
 }
@@ -53,7 +55,7 @@ impl FromStr for IPType {
             }
             return Ok(IPType::Address(temp_array));
         } else if s.contains("localhost") {
-            return Ok(IPType::Host("localhost".to_string()));
+            return Ok(IPType::Hostname("localhost".to_string()));
         } else {
             return Err(IPAddrError::ParseFromString.into());
         }
@@ -63,7 +65,7 @@ impl FromStr for IPType {
 impl Validate for IPType {
     fn validate(&self) -> ValidationResult {
         match &self {
-            Self::NotAssigned => {
+            Self::Unassigned => {
                 return ValidationResult::Error(
                     "Unassigned IP address use '.host()'".to_string()
                 );
@@ -71,7 +73,7 @@ impl Validate for IPType {
             Self::Address(x) => {
                 return ValidationResult::Success;
             }
-            Self::Host(x) => {
+            Self::Hostname(x) => {
                 if x == &"localhost".to_string() {
                     return ValidationResult::Success;
                 } else {

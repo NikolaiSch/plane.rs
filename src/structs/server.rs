@@ -6,14 +6,14 @@ use std::{
 use super::{
     config::ServerConfig,
     route::{
-        HashRoute,
+        Route,
         Route
     }
 };
 
 pub struct Plane {
     pub config:   ServerConfig,
-    pub handlers: HashMap<HashRoute, Route>,
+    pub handlers: ,
 
     pub tcp: Option<TcpListener>
 }

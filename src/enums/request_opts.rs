@@ -11,10 +11,42 @@ pub type Headers = Vec<Header>;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
 pub enum Method {
-    UNSET,
+    Unassigned,
 
     GET,
     POST
+}
+
+pub enum HTTP {
+    Unassigned,
+
+    V1_0,
+    V1_1,
+    V2,
+    V3
+}
+
+pub enum Encoding {
+    Unassigned,
+
+    Gzip,
+    Compress,
+    Deflate,
+    Br,
+    Identity,
+    Asterix
+}
+
+pub enum MimeType {
+    Application(Application),
+    Audio(Audio),
+    Font,
+    Image(Image),
+    Model,
+    Text(Text),
+    Video(Video),
+    Multipart,
+    Unknown(String)
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
@@ -36,15 +68,6 @@ impl FromStr for Locale {
     }
 }
 
-pub enum Encoding {
-    Gzip,
-    Compress,
-    Deflate,
-    Br,
-    Identity,
-    Asterix
-}
-
 impl FromStr for Encoding {
     type Err = ();
 
@@ -59,18 +82,6 @@ impl FromStr for Encoding {
             _ => Err(())
         }
     }
-}
-
-pub enum MimeType {
-    Application(Application),
-    Audio(Audio),
-    Font,
-    Image(Image),
-    Model,
-    Text(Text),
-    Video(Video),
-    Multipart,
-    Unknown(String)
 }
 
 pub enum Application {
@@ -114,22 +125,14 @@ impl FromStr for MimeType {
         let mut mime_string = s.split("/");
         let mime = match mime_string.next().unwrap() {
             "application" => {
-                match mime_string.next().unwrap() {
-                    "javascript" => {
-                        MimeType::Application(Application::Javascript)
-                    }
-                    "json" => MimeType::Application(Application::Json),
-                    "mp4" => MimeType::Application(Application::Mp4),
-                    "octet-stream" => {
-                        MimeType::Application(Application::OctetStream)
-                    }
-                    "zip" => MimeType::Application(Application::Zip),
-                    x => {
-                        MimeType::Application(Application::Unknown(
-                            x.to_string()
-                        ))
-                    }
-                }
+                MimeType::Application(match mime_string.next().unwrap() {
+                    "javascript" => Application::Javascript,
+                    "json" => Application::Json,
+                    "mp4" => Application::Mp4,
+                    "octet-stream" => Application::OctetStream,
+                    "zip" => Application::Zip,
+                    x => Application::Unknown(x.to_string())
+                })
             }
 
             _ => return Err(())

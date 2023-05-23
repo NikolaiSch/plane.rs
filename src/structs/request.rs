@@ -2,13 +2,15 @@ use crate::enums::{
     ip::IPType,
     request_opts::{
         Headers,
-        Method
+        Method,
+        HTTP
     }
 };
 
 pub struct Client {
-    pub ip:      IPType,
-    pub headers: Headers
+    pub ip:       IPType,
+    pub headers:  Headers,
+    http_version: HTTP
 }
 
 pub struct Request {
@@ -22,10 +24,11 @@ impl Default for Request {
     fn default() -> Self {
         return Request {
             client: Client {
-                ip:      IPType::NotAssigned,
-                headers: vec![]
+                ip:           IPType::Unassigned,
+                http_version: HTTP::Unassigned,
+                headers:      vec![]
             },
-            method: Method::UNSET,
+            method: Method::Unassigned,
             route:  "/".to_string()
         };
     }

@@ -1,14 +1,19 @@
-use std::hash::Hash;
+use std::{
+    collections::HashMap,
+    error::Error,
+    hash::Hash
+};
+
+use anyhow::Result;
 
 use super::{
     request::Request,
     response::Response,
     route::{
-        Handler,
-        HandlerPub,
-        HashRoute,
         Route,
-        RouteHandler
+        RouteHandler,
+        RouteMap,
+        Routes
     }
 };
 use crate::enums::{
@@ -16,75 +21,39 @@ use crate::enums::{
     request_opts::Method
 };
 
-impl Handler for Route {
-    fn handle(
-        &self,
-        req: &Request
-    ) -> Response {
-        let handler = self.handler.clone();
-        handler(req)
+impl Route {
+    pub fn new(method: Method, path: String) -> Route {
+        return Route::Standard { path, method };
     }
+}
 
-    fn match_handler(
-        &self,
-        req: &Request
-    ) -> Result<(), anyhow::Error> {
-        let path: bool = Some((req.route).clone())
-            .is_some_and(|p: String| return p == self.path);
+trait Handle<K, V> {
+    fn get_handler(&self, route: K) -> Option<V>;
 
-        if path {
-            let method = (req.method) == self.method;
-            match method {
-                true => return Ok(()),
-                false => {
-                    return Err(RouteError::DoesNotMatchMethod.into());
-                }
-            }
-        } else {
-            return Err(RouteError::DoesNotMatchPath.into());
+    fn execute_handler(&self, route: K, req: &Request) -> Result<Response, ()>;
+}
+
+impl Handle<Route, RouteHandler> for RouteMap {
+    fn get_handler(&self, route: Route) -> Option<RouteHandler> {
+        if let Some(&handler) = self.get(&route) {
+            return Some(handler);
+        } else if let Some(&handler) = self.get(&Route::Fallback) {
+            return Some(handler);
         }
+        None
     }
-}
 
-impl HandlerPub for Route {
-    fn handle_if_match(
+    // Result<Response>
+    fn execute_handler(
         &self,
+        route: Route,
         req: &Request
-    ) -> Option<Response> {
-        if let Ok(_) = self.match_handler(req) {
-            let data = self.handle(req);
-            return Some(data);
-        } else {
-            return None;
+    ) -> Result<Response, ()> {
+        let handler_opt = self.get_handler(route);
+
+        if let Some(handler) = handler_opt {
+            return Ok(handler(req));
         }
-    }
-}
-impl Hash for Route {
-    fn hash<H: std::hash::Hasher>(
-        &self,
-        state: &mut H
-    ) {
-        self.path.hash(state);
-        self.method.hash(state);
-    }
-}
-
-impl HashRoute {
-    pub fn new(
-        method: Method,
-        path: String
-    ) -> HashRoute {
-        return HashRoute { path, method };
-    }
-
-    pub fn to_route(
-        &self,
-        handler: RouteHandler
-    ) -> Route {
-        return Route {
-            path: self.path.to_string(),
-            method: self.method.clone(),
-            handler
-        };
+        Err(())
     }
 }
