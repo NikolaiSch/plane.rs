@@ -15,10 +15,10 @@ use anyhow::Result;
 use super::request::Request;
 use crate::enums::request_opts::{
     Encoding,
+    HTTPStatus,
     Header,
     Locale,
-    Method,
-    HTTP
+    Method
 };
 
 // type StringLines = ;
@@ -35,8 +35,6 @@ impl<'a> RequestParser {
             .map(|x| x.unwrap())
             .take_while(|line| !line.is_empty())
             .collect();
-
-        dbg!(&lines);
 
         RequestParser {
             inner: lines,
@@ -58,7 +56,7 @@ impl<'a> RequestParser {
         self.req.method = Method::from_str(s.next().unwrap()).unwrap();
         self.req.route = s.next().unwrap().to_string();
         self.req.client.http_version =
-            HTTP::from_str(s.next().unwrap()).unwrap();
+            HTTPStatus::from_str(s.next().unwrap()).unwrap();
 
         Ok(())
     }

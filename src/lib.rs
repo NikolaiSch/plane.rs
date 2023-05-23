@@ -8,10 +8,14 @@ pub mod prelude {
     pub use crate::{
         enums::{
             config::ServerOpts::*,
-            request_opts::Method::*
+            request_opts::{
+                Method::*,
+                *
+            }
         },
         structs::{
             response::{
+                Content,
                 Response,
                 Status
             },
@@ -19,3 +23,5 @@ pub mod prelude {
         }
     };
 }
+
+mod Options {}

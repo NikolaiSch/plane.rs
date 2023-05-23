@@ -2,9 +2,9 @@ use std::str::FromStr;
 
 use super::request::Request;
 use crate::enums::request_opts::{
+    HTTPStatus,
     Headers,
-    Method,
-    HTTP
+    Method
 };
 
 pub trait Httpify {
@@ -17,7 +17,7 @@ pub struct Response {
 }
 
 pub struct Status {
-    pub http_version: HTTP,
+    pub http_version: HTTPStatus,
     pub code:         u16,
     pub message:      String
 }
@@ -53,7 +53,7 @@ impl Httpify for Response {
 impl Status {
     pub fn new(http_version: String, code: u16, message: String) -> Self {
         return Status {
-            http_version: HTTP::from_str(&http_version).unwrap(),
+            http_version: HTTPStatus::from_str(&http_version).unwrap(),
             code,
             message
         };
@@ -70,14 +70,16 @@ impl Httpify for Status {
 }
 
 impl Content {
-    fn new(ty: String, data: String) -> Self { return Self { ty, data }; }
+    fn new(mime_type: String, data: String) -> Self {
+        return Self { mime_type, data };
+    }
 }
 
 impl Httpify for Content {
     fn to_http(&self) -> Vec<String> {
         let mut content = vec![];
 
-        content.push(format!("Content-Type: {}", self.ty));
+        content.push(format!("Content-Type: {}", self.mime_type));
         content.push(format!("Content-Length: {}", self.data.bytes().count()));
         content.push(format!(""));
         content.push(format!("{}", self.data));
@@ -94,7 +96,10 @@ impl From<Request> for Response {
                 code:         0,
                 message:      "".to_string()
             },
-            content: {}
+            content: Content {
+                mime_type: "text/html".to_string(),
+                data:      "hello from plane".to_string()
+            }
         }
     }
 }
