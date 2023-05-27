@@ -17,7 +17,7 @@ use crate::{
         ServerOpts
     },
     request::{
-        headers::method::Method,
+        headers::method::MimeType,
         request_parser::RequestParser
     },
     routing::route::{
@@ -48,7 +48,7 @@ impl Plane {
 
     pub fn route(
         &mut self,
-        method: Method,
+        method: MimeType,
         path: &'static str,
         handler: RouteHandler
     ) -> Result<&mut Plane> {

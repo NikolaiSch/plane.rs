@@ -29,6 +29,9 @@ mod locale_test;
 #[cfg(test)]
 mod method_test;
 
+#[cfg(test)]
+mod mime_types_test;
+
 pub enum Header {
     UserAgent(String),
     AcceptLanguage(Locale),

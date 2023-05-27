@@ -1,0 +1,8 @@
+GET / HTTP/1.1
+Host: 127.0.0.1:7878
+Connection: keep-alive
+Cache-Control: max-age=0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.115 Safari/537.36
+Accept-Language: en-GB
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Accept-Encoding: gzip, deflate, br

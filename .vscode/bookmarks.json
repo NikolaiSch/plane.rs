@@ -1,0 +1,49 @@
+{
+	"files": [
+		{
+			"path": "src/config/server_config.rs",
+			"bookmarks": [
+				{
+					"line": 23,
+					"column": 14,
+					"label": "ServerConfig"
+				}
+			]
+		},
+		{
+			"path": "src/request/request.rs",
+			"bookmarks": [
+				{
+					"line": 22,
+					"column": 17,
+					"label": "Request"
+				},
+				{
+					"line": 42,
+					"column": 17,
+					"label": "RequestParser"
+				}
+			]
+		},
+		{
+			"path": "src/routing/route.rs",
+			"bookmarks": [
+				{
+					"line": 20,
+					"column": 6,
+					"label": "Route"
+				}
+			]
+		},
+		{
+			"path": "src/response/response.rs",
+			"bookmarks": [
+				{
+					"line": 14,
+					"column": 15,
+					"label": "Response"
+				}
+			]
+		}
+	]
+}

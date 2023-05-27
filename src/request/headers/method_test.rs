@@ -5,8 +5,8 @@ use super::{
     method::*
 };
 
-fn check_version(s: &str, method: Method) -> () {
-    let equal = Method::from_str(s).is_ok_and(|m| m.eq(&method));
+fn check_version(s: &str, method: MimeType) -> () {
+    let equal = MimeType::from_str(s).is_ok_and(|m| m.eq(&method));
 
     assert!(
         equal,
@@ -16,29 +16,29 @@ fn check_version(s: &str, method: Method) -> () {
 }
 
 #[test]
-fn get() { check_version("GET", Method::GET); }
+fn get() { check_version("GET", MimeType::GET); }
 
 #[test]
-fn post() { check_version("POST", Method::POST); }
+fn post() { check_version("POST", MimeType::POST); }
 
 #[test]
-fn put() { check_version("PUT", Method::PUT); }
+fn put() { check_version("PUT", MimeType::PUT); }
 
 #[test]
-fn patch() { check_version("PATCH", Method::PATCH); }
+fn patch() { check_version("PATCH", MimeType::PATCH); }
 
 #[test]
-fn delete() { check_version("DELETE", Method::DELETE); }
+fn delete() { check_version("DELETE", MimeType::DELETE); }
 
 #[test]
-fn options() { check_version("OPTIONS", Method::OPTIONS); }
+fn options() { check_version("OPTIONS", MimeType::OPTIONS); }
 
 #[test]
-fn head() { check_version("HEAD", Method::HEAD); }
+fn head() { check_version("HEAD", MimeType::HEAD); }
 
 #[test]
 fn invalid() {
-    let e = Method::from_str("panic");
+    let e = MimeType::from_str("panic");
     assert!(e.is_err());
 
     assert!(e.is_err_and(|e| e.is::<HeaderErrors>()));

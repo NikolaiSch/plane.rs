@@ -9,7 +9,7 @@ use crate::{
     request::{
         headers::{
             http_version::HTTPVersion,
-            method::Method
+            method::MimeType
         },
         request::Request
     },
@@ -24,7 +24,7 @@ use crate::{
     }
 };
 
-const M: Method = Method::GET;
+const M: MimeType = MimeType::GET;
 const P: &str = "/";
 
 fn create_route_map() -> RouteMap { RouteMap::new() }

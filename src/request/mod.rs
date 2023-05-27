@@ -1,4 +1,6 @@
 pub mod errors;
 pub mod headers;
 pub mod request;
-pub mod request_parser;
+
+#[cfg(test)]
+mod request_test;

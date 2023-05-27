@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use super::errors::RouteError;
 use crate::{
     request::{
-        headers::method::Method,
+        headers::method::MimeType,
         request::Request
     },
     response::response::Response
@@ -14,12 +14,12 @@ pub type RouteMap = HashMap<Route, RouteHandler>;
 
 #[derive(Hash, PartialEq, PartialOrd, Ord, Eq, Debug, Clone)]
 pub enum Route {
-    Standard { path: String, method: Method },
+    Standard { path: String, method: MimeType },
     Fallback
 }
 
 impl Route {
-    pub fn new(method: Method, path: String) -> Route {
+    pub fn new(method: MimeType, path: String) -> Route {
         return Route::Standard { path, method };
     }
 
