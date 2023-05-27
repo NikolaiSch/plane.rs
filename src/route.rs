@@ -7,7 +7,6 @@ use {
     },
     http::{
         Method,
-        Response,
         Uri
     },
     std::collections::HashMap

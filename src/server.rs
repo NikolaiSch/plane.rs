@@ -15,18 +15,15 @@ use {
     },
     anyhow::Result,
     http::{
-        response::Builder,
         Method,
         Uri
     },
     std::{
         collections::HashMap,
         io::{
-            BufRead,
             Write
         },
         net::{
-            IpAddr,
             TcpListener
         },
         str::FromStr

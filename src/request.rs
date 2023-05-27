@@ -1,17 +1,10 @@
 use {
     crate::Req,
     anyhow::{
-        anyhow,
         bail,
         Result
     },
     http::{
-        request::{
-            Builder,
-            Parts
-        },
-        Extensions,
-        HeaderMap,
         HeaderName,
         HeaderValue,
         Method,
@@ -19,10 +12,7 @@ use {
         Uri,
         Version
     },
-    itertools::Itertools,
     std::{
-        borrow::BorrowMut,
-        default::default,
         io::{
             BufRead,
             BufReader,

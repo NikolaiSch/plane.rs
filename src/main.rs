@@ -1,7 +1,6 @@
 use {
     anyhow::Result,
     http::{
-        Request,
         Response,
         StatusCode
     },

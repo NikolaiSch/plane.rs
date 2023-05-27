@@ -1,6 +1,5 @@
 use {
     crate::Res,
-    http::Response,
     std::io::Write
 };
 
