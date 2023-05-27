@@ -72,7 +72,7 @@ impl Plane {
         let mut ireq = IncomingRequest::new(conn.try_clone()?);
         ireq.parse()?;
 
-        let mut res = self.handlers.execute_handler(&ireq.into()).unwrap();
+        let mut res = self.handlers.execute_handler(&ireq.into())?;
 
         res.write_to_stream(conn)?;
 
