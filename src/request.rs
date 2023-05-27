@@ -1,5 +1,8 @@
 use {
-    crate::Req,
+    crate::{
+        error::RequestError,
+        Req
+    },
     anyhow::{
         bail,
         Result
@@ -13,6 +16,7 @@ use {
         Version
     },
     std::{
+        default::default,
         io::{
             BufRead,
             BufReader,
@@ -29,6 +33,7 @@ pub enum Opts {
     Header((HeaderName, HeaderValue))
 }
 
+#[derive(Debug, Default)]
 pub struct IncomingRequest {
     pub data:   Req,
     pub reader: Vec<String>
@@ -42,29 +47,16 @@ impl IncomingRequest {
                 .map(|x| x.unwrap())
                 .take_while(|x| !x.is_empty())
                 .collect(),
-            data:   Request::new(vec!["Working".to_string()])
+            data:   Request::new(vec![])
         }
     }
 
     pub fn parse(&mut self) -> Result<()> {
-        let mut req = if let Some((first_line, rest)) = self.reader.split_first() {
-            UTF8Request {
-                first_line: first_line.to_string(),
-                rest:       rest.iter().map(|f| f.to_string()).collect()
-            }
-        } else {
-            bail!("Malformed Request: Empty Request");
-        };
+        let mut req = UTF8Request::new(self)?;
 
         let mut opts = req.parse_first_line()?;
 
-        opts.append(
-            &mut (req
-                .parse_headers()?
-                .into_iter()
-                .map(Opts::Header)
-                .collect())
-        );
+        opts.append(&mut (req.parse_headers()?.into_iter().map(Opts::Header).collect()));
 
         for i in opts.into_iter() {
             match i {
@@ -93,6 +85,17 @@ struct UTF8Request {
 }
 
 impl UTF8Request {
+    pub fn new(s: &mut IncomingRequest) -> anyhow::Result<UTF8Request> {
+        if let Some((first_line, rest)) = s.reader.split_first() {
+            return Ok(UTF8Request {
+                first_line: first_line.to_string(),
+                rest:       rest.iter().map(|f| f.to_string()).collect()
+            });
+        } else {
+            bail!(RequestError::EmptyRequest);
+        }
+    }
+
     pub fn parse_first_line(&mut self) -> Result<Vec<Opts>> {
         let opts = self
             .first_line
@@ -103,7 +106,7 @@ impl UTF8Request {
                     0 => Opts::Method(Method::from_str(x).unwrap()),
                     1 => Opts::Uri(Uri::from_str(x).unwrap()),
                     2 => Opts::Version(Version::HTTP_11),
-                    _ => unreachable!()
+                    _ => panic!("")
                 }
             })
             .collect();
@@ -130,7 +133,7 @@ impl UTF8Request {
 }
 
 #[cfg(test)]
-mod tests {
+mod incoming_request {
     use {
         super::*,
         http::Method,
@@ -139,16 +142,22 @@ mod tests {
 
     const REQ_PATH: &str = "test_data/requests/req2.txt";
 
+    fn new_incoming(path: &str) -> Result<IncomingRequest> {
+        let file = File::open(path)?;
+        let mut ireq = IncomingRequest::new(file);
+        ireq.parse()?;
+        Ok(ireq)
+    }
+
     #[test]
     fn new_incoming_request() -> Result<()> {
-        let file = File::open(REQ_PATH)?;
-        let mut ireq = IncomingRequest::new(file);
-
-        ireq.parse()?;
+        let ireq = new_incoming(REQ_PATH)?;
 
         assert_eq!(ireq.data.method(), &Method::GET);
         assert_eq!(ireq.data.version(), Version::HTTP_11);
         assert_eq!(*ireq.data.uri(), *"/");
+
+        dbg!(ireq.data.headers());
 
         Ok(())
     }

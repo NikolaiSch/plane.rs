@@ -16,6 +16,14 @@ pub enum ConfigError {
 
 #[derive(Error, Debug)]
 pub enum RouteError {
-    #[error("")]
+    #[error("Route not found")]
     NotFound(Route)
+}
+
+#[derive(Error, Debug)]
+pub enum RequestError {
+    #[error("Malformed Request: Empty Request")]
+    EmptyRequest,
+    #[error("Malformed Request: First Line")]
+    FirstLine
 }

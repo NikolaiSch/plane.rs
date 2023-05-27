@@ -8,7 +8,7 @@ pub trait ToHTTP {
         let text = self.get_text()?;
 
         for line in text {
-            writeln!(stream, "{}\n", line)?
+            writeln!(stream, "{}", line)?
         }
         Ok(())
     }
