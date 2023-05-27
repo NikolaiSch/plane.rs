@@ -20,7 +20,6 @@ pub type RouteHandler = &'static (dyn Fn(&Req) -> Res);
 mod body_parser;
 mod error;
 mod request;
-mod response;
 mod route;
 mod server;
 mod server_config;
