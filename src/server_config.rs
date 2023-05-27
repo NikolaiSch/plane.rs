@@ -64,3 +64,9 @@ impl ServerConfig {
         Ok(IpAddr::V4(Ipv4Addr::from_str(ip)?))
     }
 }
+
+impl Default for ServerConfig {
+    fn default() -> Self {
+        ServerConfig::new()
+    }
+}

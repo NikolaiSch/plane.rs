@@ -19,12 +19,11 @@ use {
         Uri
     },
     std::{
+        self,
         collections::HashMap,
-        io::{
-            Write
-        },
         net::{
-            TcpListener
+            TcpListener,
+            TcpStream
         },
         str::FromStr
     }
@@ -69,23 +68,22 @@ impl Plane {
         Ok(self)
     }
 
-    fn event_loop(&self) -> Result<()> {
+    fn conn_handler(&self, conn: TcpStream) -> anyhow::Result<()> {
+        let mut ireq = IncomingRequest::new(conn.try_clone()?);
+        ireq.parse()?;
+
+        let mut res = self.handlers.execute_handler(&ireq.into()).unwrap();
+
+        res.write_to_stream(conn)?;
+
+        Ok(())
+    }
+
+    fn event_loop(&self) -> anyhow::Result<()> {
         let listener = TcpListener::bind(self.config.get_socket_addr())?;
 
         for conn in listener.incoming() {
-            let mut stream = conn?;
-
-            let mut ireq = IncomingRequest::new(stream.try_clone()?);
-            ireq.parse()?;
-
-            let mut res = self.handlers.execute_handler(&ireq.into()).unwrap();
-
-            for line in res.get_text()? {
-                let w = writeln!(stream, "{}", line.trim());
-                if let Err(_x) = w {}
-            }
-
-            stream.flush()?;
+            self.conn_handler(conn?)?;
         }
 
         Ok(())
