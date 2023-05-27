@@ -10,3 +10,5 @@ pub mod request;
 pub mod route;
 pub mod server;
 pub mod server_config;
+
+pub type RouteHandler = &'static (dyn Fn(&Request, &mut Response) -> Response);

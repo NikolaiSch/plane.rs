@@ -4,7 +4,10 @@ pub use std::{
 };
 
 use {
-    crate::route::RouteHandler,
+    crate::{
+        error::ConfigError,
+        RouteHandler
+    },
     std::net::TcpListener
 };
 
@@ -19,7 +22,7 @@ pub enum ServerOpts<'a> {
 pub struct ServerConfig {
     pub ip_addr:  Ipv4Addr,
     pub port:     u16,
-    pub fallback: Option<&'static (dyn Fn(&Request) -> Response)>
+    pub fallback: Option
 }
 
 impl ServerConfig {

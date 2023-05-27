@@ -1,12 +1,18 @@
 use {
-    crate::error::RouteError,
+    crate::{
+        error::RouteError,
+        RouteHandler
+    },
+    http::{
+        Method,
+        Request
+    },
     std::collections::HashMap
 };
 
-pub type RouteHandler = &'static (dyn Fn(&Request) -> Response);
 pub type RouteMap = HashMap<Route, RouteHandler>;
 
-#[derive(Hash, PartialEq, PartialOrd, Ord, Eq, Debug, Clone)]
+#[derive(Hash, PartialEq, Eq, Debug, Clone)]
 pub enum Route {
     Standard { path: String, method: Method },
     Fallback
