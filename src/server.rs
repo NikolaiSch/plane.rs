@@ -39,10 +39,10 @@ impl Plane {
     /// Use this function to create a new instance of plane
     /// then, call helper methods on that (builder)
     pub fn board() -> Plane {
-        return Plane {
+        Plane {
             config:   ServerConfig::new(),
             handlers: HashMap::new()
-        };
+        }
     }
 
     pub fn set(&mut self, opt: ServerOpts) -> Result<&mut Self> {
@@ -66,7 +66,7 @@ impl Plane {
         let route = Route::new(method, Uri::from_str(path)?);
 
         self.handlers.insert(route, handler);
-        return Ok(self);
+        Ok(self)
     }
 
     fn event_loop(&self) -> Result<()> {
@@ -88,10 +88,10 @@ impl Plane {
             stream.flush()?;
         }
 
-        return Ok(());
+        Ok(())
     }
 
-    pub fn takeoff(&mut self) -> () {
+    pub fn takeoff(&mut self) {
         self.event_loop().unwrap();
     }
 }

@@ -47,10 +47,10 @@ impl IncomingRequest {
     }
 
     pub fn parse(&mut self) -> Result<()> {
-        let mut req = if let Some((&ref first_line, rest)) = self.reader.split_first() {
+        let mut req = if let Some((first_line, rest)) = self.reader.split_first() {
             UTF8Request {
                 first_line: first_line.to_string(),
-                rest:       rest.iter().map(|&ref f| f.to_string()).collect()
+                rest:       rest.iter().map(|f| f.to_string()).collect()
             }
         } else {
             bail!("Malformed Request: Empty Request");
@@ -62,7 +62,7 @@ impl IncomingRequest {
             &mut (req
                 .parse_headers()?
                 .into_iter()
-                .map(|x| Opts::Header(x))
+                .map(Opts::Header)
                 .collect())
         );
 
@@ -83,7 +83,7 @@ impl IncomingRequest {
 
 impl From<IncomingRequest> for Request<Vec<String>> {
     fn from(val: IncomingRequest) -> Self {
-        return val.data;
+        val.data
     }
 }
 
@@ -96,15 +96,15 @@ impl UTF8Request {
     pub fn parse_first_line(&mut self) -> Result<Vec<Opts>> {
         let opts = self
             .first_line
-            .split(" ")
+            .split(' ')
             .enumerate()
             .map(|(i, x)| {
-                return match i {
+                match i {
                     0 => Opts::Method(Method::from_str(x).unwrap()),
                     1 => Opts::Uri(Uri::from_str(x).unwrap()),
                     2 => Opts::Version(Version::HTTP_11),
                     _ => unreachable!()
-                };
+                }
             })
             .collect();
 
@@ -116,13 +116,13 @@ impl UTF8Request {
     }
 
     fn parse_header(header: &str) -> Result<(HeaderName, HeaderValue)> {
-        let parts: Vec<&str> = header.split(":").collect();
+        let parts: Vec<&str> = header.split(':').collect();
 
         if let Some((&f, s)) = parts.split_first() {
             let name = HeaderName::from_str(f)?;
-            let val = HeaderValue::from_str(s.get(0).unwrap())?;
+            let val = HeaderValue::from_str(s.first().unwrap())?;
 
-            return Ok((name, val));
+            Ok((name, val))
         } else {
             bail!("Malformed Request: Incorrect Header Format")
         }

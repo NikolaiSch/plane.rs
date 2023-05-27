@@ -22,7 +22,7 @@ pub enum Route {
 
 impl Route {
     pub fn new(method: Method, path: Uri) -> Route {
-        return Route::Standard { path, method };
+        Route::Standard { path, method }
     }
 }
 

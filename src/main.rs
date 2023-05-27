@@ -19,7 +19,7 @@ fn main() -> Result<()> {
             parts.version = req.version();
             parts.status = StatusCode::OK;
 
-            return Response::from_parts(parts, vec![]);
+            Response::from_parts(parts, vec![])
         })?
         .takeoff();
 

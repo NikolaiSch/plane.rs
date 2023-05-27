@@ -31,11 +31,11 @@ pub struct ServerConfig {
 
 impl ServerConfig {
     pub fn new() -> Self {
-        return Self {
+        Self {
             ip_addr:  IpAddr::V4(DEFAULT_IP),
             port:     DEFAULT_PORT,
             fallback: None
-        };
+        }
     }
 
     pub fn get_socket_addr(&self) -> SocketAddr {
@@ -56,7 +56,7 @@ impl ServerConfig {
     pub fn validate_port(&self) -> anyhow::Result<()> {
         match TcpListener::bind(self.get_socket_addr()) {
             Ok(_) => Ok(()),
-            Err(_) => Err(ConfigError::PortInUse(self.port.clone()).into())
+            Err(_) => Err(ConfigError::PortInUse(self.port).into())
         }
     }
 
