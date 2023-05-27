@@ -1,33 +1,14 @@
 use {
-    super::response::Httpify,
-    crate::{
-        config::config::{
-            ServerConfig,
-            ServerOpts
-        },
-        request::{
-            headers::method::Method,
-            request::RequestParser
-        },
-        routing::route::{
-            self,
-            Handle,
-            Route,
-            RouteHandler,
-            RouteMap
-        }
-    },
+    crate::server_config::ServerConfig,
     anyhow::Result,
+    http::Method,
     std::{
         collections::HashMap,
         io::Write,
-        net::{
-            Ipv4Addr,
-            TcpListener
-        },
-        str::FromStr
+        net::TcpListener
     }
 };
+
 pub struct Plane {
     pub config:   ServerConfig,
     pub handlers: RouteMap,

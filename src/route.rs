@@ -1,12 +1,5 @@
 use {
-    super::errors::RouteError,
-    crate::{
-        request::{
-            headers::method::Method,
-            request::Request
-        },
-        response::response::Response
-    },
+    crate::error::RouteError,
     std::collections::HashMap
 };
 

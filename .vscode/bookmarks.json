@@ -1,10 +1,10 @@
 {
 	"files": [
 		{
-			"path": "src/config/server_config.rs",
+			"path": "src/server_config.rs",
 			"bookmarks": [
 				{
-					"line": 23,
+					"line": 22,
 					"column": 14,
 					"label": "ServerConfig"
 				}
@@ -36,10 +36,10 @@
 			]
 		},
 		{
-			"path": "src/routing/route.rs",
+			"path": "src/route.rs",
 			"bookmarks": [
 				{
-					"line": 21,
+					"line": 14,
 					"column": 6,
 					"label": "Route"
 				}

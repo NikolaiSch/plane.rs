@@ -1,11 +1,12 @@
-use std::net::TcpListener;
 pub use std::{
     net::Ipv4Addr,
     str::FromStr
 };
 
-use super::errors::ConfigError;
-use crate::routing::route::RouteHandler;
+use {
+    crate::route::RouteHandler,
+    std::net::TcpListener
+};
 
 const DEFAULT_IP: Ipv4Addr = Ipv4Addr::UNSPECIFIED;
 const DEFAULT_PORT: u16 = 8000;
@@ -18,7 +19,7 @@ pub enum ServerOpts<'a> {
 pub struct ServerConfig {
     pub ip_addr:  Ipv4Addr,
     pub port:     u16,
-    pub fallback: Option<RouteHandler>
+    pub fallback: Option<&'static (dyn Fn(&Request) -> Response)>
 }
 
 impl ServerConfig {

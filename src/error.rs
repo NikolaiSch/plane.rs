@@ -10,3 +10,9 @@ pub enum ConfigError {
     #[error("Port {0} is in use")]
     PortInUse(u16)
 }
+
+#[derive(Error, Debug)]
+pub enum RouteError {
+    #[error("")]
+    NotFound(Route)
+}
