@@ -8,7 +8,11 @@ use {
         error::ConfigError,
         RouteHandler
     },
-    std::net::TcpListener
+    std::net::{
+        IpAddr,
+        SocketAddr,
+        TcpListener
+    }
 };
 
 const DEFAULT_IP: Ipv4Addr = Ipv4Addr::UNSPECIFIED;
@@ -20,30 +24,27 @@ pub enum ServerOpts<'a> {
     Fallback(RouteHandler)
 }
 pub struct ServerConfig {
-    pub ip_addr:  Ipv4Addr,
+    pub ip_addr:  IpAddr,
     pub port:     u16,
-    pub fallback: Option
+    pub fallback: Option<RouteHandler>
 }
 
 impl ServerConfig {
     pub fn new() -> Self {
         return Self {
-            ip_addr:  DEFAULT_IP,
+            ip_addr:  IpAddr::V4(DEFAULT_IP),
             port:     DEFAULT_PORT,
             fallback: None
         };
     }
 
-    pub fn get_full_addr(&self) -> String {
-        let ip = self.ip_addr;
-        let port = self.port;
-
-        format!("{ip}:{port}")
+    pub fn get_socket_addr(&self) -> SocketAddr {
+        SocketAddr::new(self.ip_addr, self.port)
     }
 
     pub fn set(&mut self, opt: ServerOpts) -> anyhow::Result<&mut Self> {
         match opt {
-            ServerOpts::Host(ip) => self.ip_addr = Ipv4Addr::from_str(ip)?,
+            ServerOpts::Host(ip) => self.ip_addr = IpAddr::from_str(ip)?,
             ServerOpts::Port(port) => self.port = port,
             ServerOpts::Fallback(backup) => self.fallback = Some(backup)
         }
@@ -51,7 +52,7 @@ impl ServerConfig {
     }
 
     pub fn validate_port(&self) -> anyhow::Result<()> {
-        match TcpListener::bind(self.get_full_addr()) {
+        match TcpListener::bind(self.get_socket_addr()) {
             Ok(_) => Ok(()),
             Err(_) => Err(ConfigError::PortInUse(self.port.clone()).into())
         }

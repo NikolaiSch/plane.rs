@@ -1,4 +1,7 @@
-use thiserror::Error;
+use {
+    crate::route::Route,
+    thiserror::Error
+};
 
 #[derive(Error, Debug)]
 pub enum ConfigError {

@@ -1,6 +1,8 @@
 use {
     crate::{
+        request::IncomingRequest,
         route::{
+            Handle,
             Route,
             RouteMap
         },
@@ -8,19 +10,22 @@ use {
         RouteHandler
     },
     anyhow::Result,
-    http::Method,
+    http::{
+        response::Builder,
+        Method,
+        Uri
+    },
     std::{
         collections::HashMap,
         io::Write,
-        net::TcpListener
+        net::TcpListener,
+        str::FromStr
     }
 };
 
 pub struct Plane {
     pub config:   ServerConfig,
-    pub handlers: RouteMap,
-
-    pub tcp: Option<TcpListener>
+    pub handlers: RouteMap
 }
 
 impl Plane {
@@ -29,54 +34,48 @@ impl Plane {
     pub fn board() -> Plane {
         return Plane {
             config:   ServerConfig::new(),
-            handlers: HashMap::new(),
-            tcp:      None
+            handlers: HashMap::new()
         };
     }
 
     pub fn route(
         &mut self,
         method: Method,
-        path: &'static str,
+        path: &str,
         handler: RouteHandler
     ) -> Result<&mut Plane> {
-        let route = Route::new(method, path.to_string());
+        let route = Route::new(method, Uri::from_str(path)?);
 
         self.handlers.insert(route, handler);
         return Ok(self);
     }
 
     fn event_loop(&self) -> Result<()> {
-        if let Some(x) = &self.tcp {
-            for stream_res in x.incoming() {
-                let mut stream = stream_res?;
+        let listener = TcpListener::bind(self.config.get_socket_addr())?;
 
-                let mut req = RequestParser::new(stream.try_clone()?);
-                req.parse()?;
-                let res = self.handlers.execute_handler(&req.req).unwrap();
+        for conn in listener.incoming() {
+            let mut stream = conn?;
 
-                for line in res.to_http() {
-                    dbg!(&line);
-                    let w = writeln!(stream, "{}", line.trim());
-                    if let Err(_x) = w {
-                        stream.flush().unwrap();
-                    }
-                }
-            }
+            let mut ireq = IncomingRequest::new(stream.try_clone()?);
+            ireq.parse()?;
+
+            let res = self.handlers.execute_handler(&ireq.try_into()?).unwrap();
+
+            let res = Builder::new();
+
+            // for line in res.to_http() {
+            //     dbg!(&line);
+            //     let w = writeln!(stream, "{}", line.trim());
+            //     if let Err(_x) = w {
+            //         stream.flush().unwrap();
+            //     }
+            // }
         }
+
         return Ok(());
     }
 
     pub fn takeoff(&mut self) -> () {
-        self.tcp =
-            Some(TcpListener::bind(self.config.get_full_addr()).unwrap());
-
-        let _ = self.event_loop().unwrap();
-    }
-}
-
-impl Default for Plane {
-    fn default() -> Self {
-        self::Plane::board()
+        self.event_loop().unwrap();
     }
 }

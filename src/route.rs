@@ -1,40 +1,54 @@
 use {
     crate::{
+        body_parser::{
+            FromReq,
+            ToRes
+        },
         error::RouteError,
+        Req,
+        Res,
         RouteHandler
     },
     http::{
         Method,
-        Request
+        Request,
+        Response,
+        Uri
     },
-    std::collections::HashMap
+    std::{
+        collections::HashMap,
+        fmt::Display,
+        str::FromStr
+    }
 };
 
 pub type RouteMap = HashMap<Route, RouteHandler>;
 
 #[derive(Hash, PartialEq, Eq, Debug, Clone)]
 pub enum Route {
-    Standard { path: String, method: Method },
+    Standard { path: Uri, method: Method },
     Fallback
 }
 
 impl Route {
-    pub fn new(method: Method, path: String) -> Route {
+    pub fn new(method: Method, path: Uri) -> Route {
         return Route::Standard { path, method };
     }
+}
 
-    fn from_request(req: &Request) -> Self {
-        Route::Standard {
-            path:   req.route.clone(),
-            method: req.method.clone()
-        }
+impl<T> From<&Req<T>> for Route {
+    fn from(value: &Req<T>) -> Self {
+        let path = value.uri().clone();
+        let method = value.method().clone();
+
+        Route::Standard { path, method }
     }
 }
 
 pub trait Handle<K, V> {
     fn get_handler(&self, route: K) -> anyhow::Result<RouteHandler>;
 
-    fn execute_handler(&self, req: &Request) -> anyhow::Result<Response>;
+    fn execute_handler(&self, req: &Req<()>) -> anyhow::Result<Res<()>>;
 }
 
 impl Handle<Route, RouteHandler> for RouteMap {
@@ -47,11 +61,13 @@ impl Handle<Route, RouteHandler> for RouteMap {
         Err(RouteError::NotFound(route).into())
     }
 
-    fn execute_handler(&self, req: &Request) -> anyhow::Result<Response> {
-        let route = Route::from_request(&req);
+    fn execute_handler(&self, req: &Req<()>) -> anyhow::Result<Res<()>> {
+        let route = Route::from(req);
         let handler = self.get_handler(route)?;
 
-        let res = handler(req);
+        let mut res = Response::new(());
+
+        let res = handler(req, &mut res);
 
         Ok(res)
     }

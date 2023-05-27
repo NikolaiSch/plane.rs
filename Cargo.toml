@@ -7,6 +7,8 @@
 
 [dependencies]
  anyhow    = { version = "1.0.71", features = [] }
- http      = "0.2"
+ http      = "0.2.9"
+ itertools = "0.10.5"
+mime = "0.3.17"
  strum     = { version = "0.24.1", features = ["derive", "phf"] }
  thiserror = { version = "1.0.40", features = [] }
