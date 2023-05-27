@@ -1,6 +1,8 @@
 use std::str::FromStr;
 
-#[derive(Debug)]
+use super::super::errors::HeaderErrors;
+
+#[derive(Debug, Hash, PartialEq, Eq)]
 pub enum Encoding {
     Unassigned,
 
@@ -13,17 +15,17 @@ pub enum Encoding {
 }
 
 impl FromStr for Encoding {
-    type Err = ();
+    type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.trim() {
+        match &*s.trim().to_lowercase() {
             "gzip" => Ok(Self::Gzip),
             "compress" => Ok(Self::Compress),
             "deflate" => Ok(Self::Deflate),
             "br" => Ok(Self::Br),
             "identity" => Ok(Self::Identity),
             "*" => Ok(Self::Asterix),
-            _ => Err(())
+            x => Err(HeaderErrors::EncodingError(x.to_string()).into())
         }
     }
 }

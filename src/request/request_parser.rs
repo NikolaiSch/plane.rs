@@ -9,13 +9,17 @@ use std::{
 
 use anyhow::Result;
 
-use super::request::Request;
-use crate::enums::request_opts::{
-    Encoding,
-    HTTPStatus,
-    Header,
-    Locale,
-    Method
+use super::{
+    headers::{
+        encoding::Encoding,
+        locale::Locale,
+        Header
+    },
+    request::Request
+};
+use crate::request::headers::{
+    http_version::HTTPVersion,
+    method::Method
 };
 
 pub struct RequestParser {
@@ -41,7 +45,6 @@ impl<'a> RequestParser {
     pub fn parse(&mut self) -> Result<()> {
         self.parse_first_line()?;
         self.req.client.headers = self.parse_headers()?;
-        dbg!(&self.req);
         Ok(())
     }
 
@@ -52,7 +55,7 @@ impl<'a> RequestParser {
         self.req.method = Method::from_str(s.next().unwrap()).unwrap();
         self.req.route = s.next().unwrap().to_string();
         self.req.client.http_version =
-            HTTPStatus::from_str(s.next().unwrap()).unwrap();
+            HTTPVersion::from_str(s.next().unwrap()).unwrap();
 
         Ok(())
     }
@@ -60,36 +63,10 @@ impl<'a> RequestParser {
     fn parse_headers<'b>(&mut self) -> Result<Vec<Header>> {
         let mut v = vec![];
         for line in self {
-            if let Some((key, val)) = line.split_once(":") {
-                let header = RequestParser::match_header(key, val);
-                if let Some(x) = header {
-                    v.push(x);
-                }
-            }
+            let header = Header::from_str(&line)?;
+            v.push(header);
         }
-        dbg!(1);
         Ok(v)
-    }
-
-    fn match_header(key: &str, val: &str) -> Option<Header> {
-        let k = &*key.trim().to_lowercase();
-        let v = val.trim();
-
-        match k {
-            "user-agent" => Some(Header::UserAgent(v.to_string())),
-            "accept-encoding" => {
-                let encoded_vec = val
-                    .split(",")
-                    .map(|x| x.trim().parse::<Encoding>().unwrap())
-                    .collect();
-
-                Some(Header::AcceptEncoding(encoded_vec))
-            }
-            "accept-language" => {
-                Some(Header::AcceptLanguage(Locale::from_str(v).unwrap()))
-            }
-            _ => None
-        }
     }
 }
 

@@ -1,8 +1,11 @@
-use std::str::FromStr;
+use std::{
+    default,
+    str::FromStr
+};
 
-use super::request::Request;
-use crate::enums::request_opts::{
-    HTTPStatus
+use crate::request::{
+    headers::http_version::HTTPVersion,
+    request::Request
 };
 
 pub trait Httpify {
@@ -15,7 +18,7 @@ pub struct Response {
 }
 
 pub struct Status {
-    pub http_version: HTTPStatus,
+    pub http_version: HTTPVersion,
     pub code:         u16,
     pub message:      String
 }
@@ -25,14 +28,19 @@ pub struct Content {
     pub data:      String
 }
 
+impl Default for Content {
+    fn default() -> Self {
+        Self {
+            data:      "<h1>test</h1>".to_string(),
+            mime_type: "text/html".to_string()
+        }
+    }
+}
+
 impl Default for Response {
     fn default() -> Self {
         return Self {
-            status:  Status::new("HTTP/1.1".to_string(), 200, "OK".to_string()),
-            content: Content::new(
-                "text/html".to_string(),
-                "<h1>test</h1>".to_string()
-            )
+            ..Default::default()
         };
     }
 }
@@ -51,10 +59,16 @@ impl Httpify for Response {
 impl Status {
     pub fn new(http_version: String, code: u16, message: String) -> Self {
         return Status {
-            http_version: HTTPStatus::from_str(&http_version).unwrap(),
+            http_version: HTTPVersion::from_str(&http_version).unwrap(),
             code,
             message
         };
+    }
+}
+
+impl Default for Status {
+    fn default() -> Self {
+        Status::new("HTTP/1.1".to_string(), 200, "OK".to_string())
     }
 }
 
@@ -68,8 +82,11 @@ impl Httpify for Status {
 }
 
 impl Content {
-    fn new(mime_type: String, data: String) -> Self {
-        return Self { mime_type, data };
+    pub fn new(mime_type: &str, data: &str) -> Self {
+        return Self {
+            mime_type: mime_type.to_string(),
+            data:      data.to_string()
+        };
     }
 }
 

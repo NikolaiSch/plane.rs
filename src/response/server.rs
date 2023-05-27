@@ -1,47 +1,39 @@
-use std::net::TcpListener;
-
-use super::{
-    config::ServerConfig,
-    route::RouteMap
+use std::{
+    collections::HashMap,
+    io::Write,
+    net::{
+        Ipv4Addr,
+        TcpListener
+    },
+    str::FromStr
 };
 
+use anyhow::Result;
+
+use super::response::Httpify;
+use crate::{
+    config::config::{
+        ServerConfig,
+        ServerOpts
+    },
+    request::{
+        headers::method::Method,
+        request_parser::RequestParser
+    },
+    routing::route::{
+        self,
+        Handle,
+        Route,
+        RouteHandler,
+        RouteMap
+    }
+};
 pub struct Plane {
     pub config:   ServerConfig,
     pub handlers: RouteMap,
 
     pub tcp: Option<TcpListener>
 }
-
-use std::{
-    collections::HashMap,
-    io::Write,
-    net::TcpListener
-};
-
-use anyhow::Result;
-
-use super::{
-    config::ServerConfig,
-    route::{
-        Route,
-        RouteHandler
-    },
-    route_impl::Handle,
-    server::Plane,
-    tcp_parser::RequestParser
-};
-use crate::{
-    enums::{
-        config::ServerOpts,
-        ip::IPType,
-        request_opts::Method
-    },
-    structs::response::Httpify,
-    traits::validate::{
-        Validate,
-        ValidationResult
-    }
-};
 
 impl Plane {
     /// Use this function to create a new instance of plane
@@ -52,24 +44,6 @@ impl Plane {
             handlers: HashMap::new(),
             tcp:      None
         };
-    }
-
-    pub fn set(&mut self, opt: ServerOpts) -> Result<&mut Plane> {
-        match opt {
-            ServerOpts::Host(ip) => {
-                self.config.ip_addr = ip.parse::<IPType>()?;
-            }
-            ServerOpts::Port(port) => {
-                self.config.port = port;
-            }
-            ServerOpts::Fallback(Some(route)) => {
-                self.config.fallback = Some(route);
-            }
-            ServerOpts::Fallback(None) => {
-                self.config.fallback = None;
-            }
-        }
-        Ok(self)
     }
 
     pub fn route(
@@ -106,10 +80,6 @@ impl Plane {
     }
 
     pub fn takeoff(&mut self) -> () {
-        if let ValidationResult::Error(x) = self.config.validate() {
-            panic!("{x}")
-        }
-
         self.tcp =
             Some(TcpListener::bind(self.config.get_full_addr()).unwrap());
 

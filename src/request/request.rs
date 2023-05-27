@@ -1,20 +1,14 @@
-use crate::enums::{
-    ip::IPType,
-    request_opts::{
-        HTTPStatus,
-        Headers,
-        Method
-    }
+use super::headers::{
+    http_version::HTTPVersion,
+    method::Method,
+    Header
 };
 
-#[derive(Debug)]
 pub struct Client {
-    pub ip:           IPType,
-    pub headers:      Headers,
-    pub http_version: HTTPStatus
+    pub headers:      Vec<Header>,
+    pub http_version: HTTPVersion
 }
 
-#[derive(Debug)]
 pub struct Request {
     pub client: Client,
 
@@ -26,8 +20,7 @@ impl Default for Request {
     fn default() -> Self {
         return Request {
             client: Client {
-                ip:           IPType::Unassigned,
-                http_version: HTTPStatus::Unassigned,
+                http_version: HTTPVersion::Unassigned,
                 headers:      vec![]
             },
             method: Method::Unassigned,

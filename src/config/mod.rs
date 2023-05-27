@@ -1,6 +1,13 @@
-mod config;
 mod errors;
-mod ip_address;
-mod validate;
+mod server_config;
 
-pub mod config {}
+#[cfg(test)]
+mod server_config_test;
+
+pub mod config {
+    pub use super::server_config::{
+        ServerConfig,
+        ServerOpts,
+        ServerOpts::*
+    };
+}

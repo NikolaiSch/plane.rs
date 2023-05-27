@@ -1,7 +1,18 @@
+use std::collections::HashMap;
+
+use super::errors::RouteError;
+use crate::{
+    request::{
+        headers::method::Method,
+        request::Request
+    },
+    response::response::Response
+};
+
 pub type RouteHandler = &'static (dyn Fn(&Request) -> Response);
 pub type RouteMap = HashMap<Route, RouteHandler>;
 
-#[derive(Hash, PartialEq, PartialOrd, Ord, Eq, Debug)]
+#[derive(Hash, PartialEq, PartialOrd, Ord, Eq, Debug, Clone)]
 pub enum Route {
     Standard { path: String, method: Method },
     Fallback
@@ -21,29 +32,27 @@ impl Route {
 }
 
 pub trait Handle<K, V> {
-    fn get_handler(&self, route: K) -> Option<V>;
+    fn get_handler(&self, route: K) -> anyhow::Result<RouteHandler>;
 
-    fn execute_handler(&self, req: &Request) -> Result<Response, ()>;
+    fn execute_handler(&self, req: &Request) -> anyhow::Result<Response>;
 }
 
 impl Handle<Route, RouteHandler> for RouteMap {
-    fn get_handler(&self, route: Route) -> Option<RouteHandler> {
+    fn get_handler(&self, route: Route) -> anyhow::Result<RouteHandler> {
         if let Some(&handler) = self.get(&route) {
-            return Some(handler);
+            return Ok(handler);
         } else if let Some(&handler) = self.get(&Route::Fallback) {
-            return Some(handler);
+            return Ok(handler);
         }
-        None
+        Err(RouteError::NotFound(route).into())
     }
 
-    // Result<Response>
-    fn execute_handler(&self, req: &Request) -> Result<Response, ()> {
+    fn execute_handler(&self, req: &Request) -> anyhow::Result<Response> {
         let route = Route::from_request(&req);
-        let handler_opt = self.get_handler(route);
+        let handler = self.get_handler(route)?;
 
-        if let Some(handler) = handler_opt {
-            return Ok(handler(req));
-        }
-        Err(())
+        let res = handler(req);
+
+        Ok(res)
     }
 }

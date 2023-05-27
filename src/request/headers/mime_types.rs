@@ -1,62 +1,97 @@
+use std::str::FromStr;
+
+use strum::EnumString;
+
+use crate::request::errors::HeaderErrors;
+
 #[derive(Debug)]
-pub enum MimeType {
-    Application(Application),
-    Audio(Audio),
-    Font,
-    Image(Image),
-    Model,
-    Text(Text),
-    Video(Video),
-    Multipart,
-    Unknown(String)
+pub struct MimeType {
+    pub super_type: MimeSuperType,
+    pub sub_type:   MimeSubType
 }
 
 impl FromStr for MimeType {
-    type Err = ();
+    type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut mime_string = s.split("/");
-        let mime = match mime_string.next().unwrap() {
-            "application" => {
-                MimeType::Application(match mime_string.next().unwrap() {
-                    "javascript" => Application::Javascript,
-                    "json" => Application::Json,
-                    "mp4" => Application::Mp4,
-                    "octet-stream" => Application::OctetStream,
-                    "zip" => Application::Zip,
-                    x => Application::Unknown(x.to_string())
-                })
+        let mut m: [&str; 2] = Default::default();
+        s.split("/").enumerate().for_each(|(i, x)| m[i] = x);
+
+        let super_type = MimeSuperType::from_str(m[0])?;
+
+        let sub_type = match super_type {
+            MimeSuperType::Application => {
+                MimeSubType::Application(Application::from_str(m[1])?)
             }
-
-            _ => return Err(())
+            MimeSuperType::Audio => MimeSubType::Audio(Audio::from_str(m[1])?),
+            MimeSuperType::Image => MimeSubType::Image(Image::from_str(m[1])?),
+            MimeSuperType::Text => MimeSubType::Text(Text::from_str(m[1])?),
+            MimeSuperType::Video => MimeSubType::Video(Video::from_str(m[1])?),
+            _ => return Err(HeaderErrors::MimeTypeError(s.to_string()).into())
         };
-
-        Ok(mime)
+        Ok(Self {
+            super_type,
+            sub_type
+        })
     }
 }
 
+#[derive(Debug, EnumString)]
+#[strum(serialize_all = "snake_case")]
+#[strum(ascii_case_insensitive)]
+pub enum MimeSuperType {
+    Application,
+    Audio,
+    Font,
+    Image,
+    Model,
+    Text,
+    Video,
+    Multipart,
+    Unknown()
+}
+
 #[derive(Debug)]
+pub enum MimeSubType {
+    Application(Application),
+    Audio(Audio),
+    Image(Image),
+    Text(Text),
+    Video(Video)
+}
+
+#[derive(Debug, EnumString)]
+#[strum(serialize_all = "snake_case")]
+#[strum(ascii_case_insensitive)]
 pub enum Application {
     Javascript,
     Json,
     Mp4,
     OctetStream,
-    Zip,
-    Unknown(String)
+    Zip
 }
-#[derive(Debug)]
+
+#[derive(Debug, EnumString)]
+#[strum(serialize_all = "snake_case")]
+#[strum(ascii_case_insensitive)]
 pub enum Audio {
     XMidi,
     XWav
 }
-#[derive(Debug)]
+
+#[derive(Debug, EnumString)]
+#[strum(serialize_all = "snake_case")]
+#[strum(ascii_case_insensitive)]
 pub enum Image {
     Bmp,
     Gif,
     Jpeg,
     Tiff
 }
-#[derive(Debug)]
+
+#[derive(Debug, EnumString)]
+#[strum(serialize_all = "snake_case")]
+#[strum(ascii_case_insensitive)]
 pub enum Text {
     Html,
     Plain,
@@ -64,7 +99,10 @@ pub enum Text {
     Css,
     Csv
 }
-#[derive(Debug)]
+
+#[derive(Debug, EnumString)]
+#[strum(serialize_all = "snake_case")]
+#[strum(ascii_case_insensitive)]
 pub enum Video {
     Mpeg,
     Quicktime
