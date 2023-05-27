@@ -1,12 +1,13 @@
-use std::str::FromStr;
-
-use super::{
-    super::errors::HeaderErrors,
-    mime_types::*
+use {
+    super::{
+        super::errors::HeaderErrors,
+        mime_types::*
+    },
+    std::str::FromStr
 };
 
 fn check_mime(s: &str, mime: MimeType) -> () {
-    let m = MimeType::parse(s);
+    let m = MimeType::from_header(s);
     assert!(m.is_ok());
 
     assert_eq!(
@@ -19,7 +20,9 @@ fn check_mime(s: &str, mime: MimeType) -> () {
 }
 
 #[test]
-fn text_plain() { check_mime("text/plain", MimeType::Text(Text::Plain)); }
+fn text_plain() {
+    check_mime("text/plain", MimeType::Text(Text::Plain));
+}
 
 #[test]
 fn application_javascript() {
@@ -30,10 +33,14 @@ fn application_javascript() {
 }
 
 #[test]
-fn image_gif() { check_mime("image/gif", MimeType::Image(Image::Gif)); }
+fn image_gif() {
+    check_mime("image/gif", MimeType::Image(Image::Gif));
+}
 
 #[test]
-fn video_mpeg() { check_mime("video/mpeg", MimeType::Video(Video::Mpeg)); }
+fn video_mpeg() {
+    check_mime("video/mpeg", MimeType::Video(Video::Mpeg));
+}
 
 #[test]
 fn invalid() {

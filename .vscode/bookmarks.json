@@ -11,15 +11,25 @@
 			]
 		},
 		{
+			"path": "src/request/headers.rs",
+			"bookmarks": [
+				{
+					"line": 36,
+					"column": 11,
+					"label": "Headers"
+				}
+			]
+		},
+		{
 			"path": "src/request/request.rs",
 			"bookmarks": [
 				{
-					"line": 22,
+					"line": 34,
 					"column": 17,
 					"label": "Request"
 				},
 				{
-					"line": 42,
+					"line": 54,
 					"column": 17,
 					"label": "RequestParser"
 				}
@@ -29,7 +39,7 @@
 			"path": "src/routing/route.rs",
 			"bookmarks": [
 				{
-					"line": 20,
+					"line": 21,
 					"column": 6,
 					"label": "Route"
 				}
@@ -39,7 +49,7 @@
 			"path": "src/response/response.rs",
 			"bookmarks": [
 				{
-					"line": 14,
+					"line": 20,
 					"column": 15,
 					"label": "Response"
 				}

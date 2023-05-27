@@ -1,33 +1,36 @@
-use anyhow::Result;
-
-use super::route::{
-    self,
-    Route,
-    RouteMap
-};
-use crate::{
-    request::{
-        headers::{
-            http_version::HTTPVersion,
-            method::MimeType
+use {
+    super::route::{
+        self,
+        Route,
+        RouteMap
+    },
+    crate::{
+        request::{
+            headers::{
+                http_version::HTTPVersion,
+                method::Method
+            },
+            request::Request
         },
-        request::Request
+        response::response::{
+            Content,
+            Response,
+            Status
+        },
+        routing::{
+            errors::RouteError,
+            route::Handle
+        }
     },
-    response::response::{
-        Content,
-        Response,
-        Status
-    },
-    routing::{
-        errors::RouteError,
-        route::Handle
-    }
+    anyhow::Result
 };
 
-const M: MimeType = MimeType::GET;
+const M: Method = Method::GET;
 const P: &str = "/";
 
-fn create_route_map() -> RouteMap { RouteMap::new() }
+fn create_route_map() -> RouteMap {
+    RouteMap::new()
+}
 
 #[test]
 fn route_integration() {

@@ -1,18 +1,23 @@
-use std::{
-    io::{
-        BufRead,
-        BufReader
+use {
+    super::headers::{
+        http_version::HTTPVersion,
+        method::Method,
+        Header
     },
-    net::TcpStream,
-    str::FromStr
-};
-
-use anyhow::Result;
-
-use super::headers::{
-    http_version::HTTPVersion,
-    method::MimeType,
-    Header
+    anyhow::Result,
+    std::{
+        fmt::{
+            Debug,
+            Write
+        },
+        io::{
+            BufRead,
+            BufReader,
+            Read
+        },
+        net::TcpStream,
+        str::FromStr
+    }
 };
 
 pub struct Client {
@@ -20,10 +25,17 @@ pub struct Client {
     pub http_version: HTTPVersion
 }
 
+impl Debug for Client {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.http_version)
+    }
+}
+
+#[derive(Debug)]
 pub struct Request {
     pub client: Client,
 
-    pub method: MimeType,
+    pub method: Method,
     pub route:  String
 }
 
@@ -34,7 +46,7 @@ impl Default for Request {
                 http_version: HTTPVersion::Unassigned,
                 headers:      vec![]
             },
-            method: MimeType::Unassigned,
+            method: Method::Unassigned,
             route:  "/".to_string()
         };
     }
@@ -46,7 +58,7 @@ pub struct RequestParser {
 }
 
 impl<'a> RequestParser {
-    pub fn new(mut stream: TcpStream) -> Self {
+    pub fn new(mut stream: impl Read) -> Self {
         let reader = BufReader::new(&mut stream);
         let lines = reader
             .lines()
@@ -68,12 +80,12 @@ impl<'a> RequestParser {
 
     fn parse_first_line<'b>(&mut self) -> Result<()> {
         let first_line = self.next().unwrap();
-        dbg!(&first_line);
+
         let mut s = first_line.split(" ");
-        self.req.method = MimeType::from_str(s.next().unwrap()).unwrap();
+        self.req.method = Method::from_str(s.next().unwrap())?;
         self.req.route = s.next().unwrap().to_string();
         self.req.client.http_version =
-            HTTPVersion::from_str(s.next().unwrap()).unwrap();
+            HTTPVersion::from_str(s.next().unwrap())?;
 
         Ok(())
     }
@@ -81,8 +93,10 @@ impl<'a> RequestParser {
     fn parse_headers<'b>(&mut self) -> Result<Vec<Header>> {
         let mut v = vec![];
         for line in self {
-            let header = Header::from_str(&line)?;
-            v.push(header);
+            let header = Header::from_str(&line);
+            if let Ok(x) = header {
+                v.push(x);
+            }
         }
         Ok(v)
     }

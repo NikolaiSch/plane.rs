@@ -1,12 +1,13 @@
-use std::collections::HashMap;
-
-use super::errors::RouteError;
-use crate::{
-    request::{
-        headers::method::MimeType,
-        request::Request
+use {
+    super::errors::RouteError,
+    crate::{
+        request::{
+            headers::method::Method,
+            request::Request
+        },
+        response::response::Response
     },
-    response::response::Response
+    std::collections::HashMap
 };
 
 pub type RouteHandler = &'static (dyn Fn(&Request) -> Response);
@@ -14,12 +15,12 @@ pub type RouteMap = HashMap<Route, RouteHandler>;
 
 #[derive(Hash, PartialEq, PartialOrd, Ord, Eq, Debug, Clone)]
 pub enum Route {
-    Standard { path: String, method: MimeType },
+    Standard { path: String, method: Method },
     Fallback
 }
 
 impl Route {
-    pub fn new(method: MimeType, path: String) -> Route {
+    pub fn new(method: Method, path: String) -> Route {
         return Route::Standard { path, method };
     }
 

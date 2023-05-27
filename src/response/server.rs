@@ -1,31 +1,31 @@
-use std::{
-    collections::HashMap,
-    io::Write,
-    net::{
-        Ipv4Addr,
-        TcpListener
+use {
+    super::response::Httpify,
+    crate::{
+        config::config::{
+            ServerConfig,
+            ServerOpts
+        },
+        request::{
+            headers::method::Method,
+            request::RequestParser
+        },
+        routing::route::{
+            self,
+            Handle,
+            Route,
+            RouteHandler,
+            RouteMap
+        }
     },
-    str::FromStr
-};
-
-use anyhow::Result;
-
-use super::response::Httpify;
-use crate::{
-    config::config::{
-        ServerConfig,
-        ServerOpts
-    },
-    request::{
-        headers::method::MimeType,
-        request_parser::RequestParser
-    },
-    routing::route::{
-        self,
-        Handle,
-        Route,
-        RouteHandler,
-        RouteMap
+    anyhow::Result,
+    std::{
+        collections::HashMap,
+        io::Write,
+        net::{
+            Ipv4Addr,
+            TcpListener
+        },
+        str::FromStr
     }
 };
 pub struct Plane {
@@ -48,7 +48,7 @@ impl Plane {
 
     pub fn route(
         &mut self,
-        method: MimeType,
+        method: Method,
         path: &'static str,
         handler: RouteHandler
     ) -> Result<&mut Plane> {
@@ -88,5 +88,7 @@ impl Plane {
 }
 
 impl Default for Plane {
-    fn default() -> Self { self::Plane::board() }
+    fn default() -> Self {
+        self::Plane::board()
+    }
 }
