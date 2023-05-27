@@ -1,14 +1,13 @@
-use std::{
-    default,
-    str::FromStr
+use {
+    crate::request::errors::HeaderErrors,
+    std::str::FromStr,
+    strum::EnumString,
+    Application::*,
+    Audio::*,
+    Image::*,
+    Text::*,
+    Video::*
 };
-
-use strum::{
-    EnumDiscriminants,
-    EnumString
-};
-
-use crate::request::errors::HeaderErrors;
 
 #[derive(Debug, EnumString, PartialEq, Eq)]
 #[strum(serialize_all = "snake_case")]
@@ -21,7 +20,8 @@ pub enum MimeType {
     Model,
     Text(Text),
     Video(Video),
-    Multipart
+    Multipart,
+    Unknown(String)
 }
 
 impl MimeType {
@@ -43,14 +43,20 @@ impl MimeType {
         }
     }
 
-    pub fn parse(s: &str) -> anyhow::Result<MimeType> {
+    pub fn from_header(s: &str) -> anyhow::Result<MimeType> {
         let mut s_array: [&str; 2] = Default::default();
 
         s.split("/").enumerate().for_each(|(i, x)| s_array[i] = x);
+        let mime = MimeType::from_str(s_array[0]);
 
-        let mut mime = MimeType::from_str(s_array[0])?;
-
-        Ok(mime.get_subtype(s_array[1])?)
+        if let Err(_) = mime {
+            return Ok(MimeType::Unknown(s.to_string()));
+        } else {
+            return Ok(mime
+                .unwrap()
+                .get_subtype(s_array[1])
+                .unwrap_or(MimeType::Unknown(s.to_string())));
+        }
     }
 }
 

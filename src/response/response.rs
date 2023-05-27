@@ -1,11 +1,16 @@
-use std::{
-    default,
-    str::FromStr
-};
-
-use crate::request::{
-    headers::http_version::HTTPVersion,
-    request::Request
+use {
+    super::response_codes::StatusCodes,
+    crate::request::{
+        headers::{
+            http_version::HTTPVersion,
+            mime_types::*
+        },
+        request::Request
+    },
+    std::{
+        default,
+        str::FromStr
+    }
 };
 
 pub trait Httpify {
@@ -24,7 +29,7 @@ pub struct Status {
 }
 
 pub struct Content {
-    pub mime_type: String,
+    pub mime_type: MimeType,
     pub data:      String
 }
 
@@ -32,7 +37,7 @@ impl Default for Content {
     fn default() -> Self {
         Self {
             data:      "<h1>test</h1>".to_string(),
-            mime_type: "text/html".to_string()
+            mime_type: MimeType::Text(Text::Html)
         }
     }
 }
@@ -106,11 +111,7 @@ impl Httpify for Content {
 impl From<Request> for Response {
     fn from(value: Request) -> Self {
         Response {
-            status:  Status {
-                http_version: value.client.http_version,
-                code:         0,
-                message:      "".to_string()
-            },
+            status:  StatusCodes::OK.get(),
             content: Content {
                 mime_type: "text/html".to_string(),
                 data:      "hello from plane".to_string()
