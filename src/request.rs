@@ -40,18 +40,22 @@ pub struct IncomingRequest {
 }
 
 impl IncomingRequest {
-    pub fn new(stream: impl Read) -> Self {
-        Self {
+    pub fn new(stream: impl Read) -> Result<Self> {
+        let mut s = Self {
             reader: BufReader::new(stream)
                 .lines()
                 .map(|x| x.unwrap())
                 .take_while(|x| !x.is_empty())
                 .collect(),
             data:   Request::new(vec![])
-        }
+        };
+
+        s.parse()?;
+
+        return Ok(s);
     }
 
-    pub fn parse(&mut self) -> Result<()> {
+    fn parse(&mut self) -> Result<()> {
         let mut req = UTF8Request::new(self)?;
 
         let mut opts = req.parse_first_line()?;
@@ -106,7 +110,7 @@ impl UTF8Request {
                     0 => Opts::Method(Method::from_str(x).unwrap()),
                     1 => Opts::Uri(Uri::from_str(x).unwrap()),
                     2 => Opts::Version(Version::HTTP_11),
-                    _ => panic!("")
+                    _ => panic!("should be unreachable")
                 }
             })
             .collect();
@@ -144,9 +148,7 @@ mod incoming_request {
 
     fn new_incoming(path: &str) -> Result<IncomingRequest> {
         let file = File::open(path)?;
-        let mut ireq = IncomingRequest::new(file);
-        ireq.parse()?;
-        Ok(ireq)
+        Ok(IncomingRequest::new(file)?)
     }
 
     #[test]
@@ -161,4 +163,7 @@ mod incoming_request {
 
         Ok(())
     }
+
+    // #[test]
+    // fn
 }

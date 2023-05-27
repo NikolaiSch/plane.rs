@@ -69,8 +69,7 @@ impl Plane {
     }
 
     fn conn_handler(&self, conn: TcpStream) -> anyhow::Result<()> {
-        let mut ireq = IncomingRequest::new(conn.try_clone()?);
-        ireq.parse()?;
+        let ireq = IncomingRequest::new(conn.try_clone()?)?;
 
         let mut res = self.handlers.execute_handler(&ireq.into())?;
 
