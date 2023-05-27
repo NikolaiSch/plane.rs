@@ -1,4 +1,5 @@
 use {
+    crate::Req,
     anyhow::{
         anyhow,
         bail,
@@ -38,20 +39,20 @@ pub enum Opts {
     Header((HeaderName, HeaderValue))
 }
 
-pub struct IncomingRequest<T> {
-    pub data:   Request<T>,
+pub struct IncomingRequest {
+    pub data:   Req,
     pub reader: Vec<String>
 }
 
-impl<T> IncomingRequest<T> {
-    pub fn new(stream: impl Read, data: T) -> Self {
+impl IncomingRequest {
+    pub fn new(stream: impl Read) -> Self {
         Self {
             reader: BufReader::new(stream)
                 .lines()
                 .map(|x| x.unwrap())
                 .take_while(|x| !x.is_empty())
                 .collect(),
-            data:   Request::new(data)
+            data:   Request::new(vec!["Working".to_string()])
         }
     }
 
@@ -90,9 +91,9 @@ impl<T> IncomingRequest<T> {
     }
 }
 
-impl<T> From<IncomingRequest<T>> for Request<T> {
-    fn from(val: IncomingRequest<T>) -> Self {
-        val.data
+impl From<IncomingRequest> for Request<Vec<String>> {
+    fn from(val: IncomingRequest) -> Self {
+        return val.data;
     }
 }
 
@@ -151,7 +152,7 @@ mod tests {
     #[test]
     fn new_incoming_request() -> Result<()> {
         let file = File::open(REQ_PATH)?;
-        let mut ireq = IncomingRequest::new(file, " ");
+        let mut ireq = IncomingRequest::new(file);
 
         ireq.parse()?;
 

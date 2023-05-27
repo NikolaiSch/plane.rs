@@ -1,28 +1,36 @@
-#![feature(default_free_fn, assert_matches, try_trait_v2, const_trait_impl)]
+#![feature(
+    default_free_fn,
+    assert_matches,
+    try_trait_v2,
+    const_trait_impl,
+    associated_type_bounds,
+    associated_type_defaults
+)]
 
-use {
-    self::body_parser::{
-        FromReq,
-        ToRes
-    },
-    http::{
-        Request,
-        Response
-    },
-    std::collections::HashMap
+use http::{
+    Request,
+    Response
 };
 
-pub type Req<T> = Request<T>;
-pub type Res<T> = Response<T>;
+pub type Req = Request<Vec<String>>;
+pub type Res = Response<Vec<String>>;
 
-pub type RouteHandler = &'static (dyn Fn(&Req<()>, &mut Res<()>) -> Res<()>);
+pub type RouteHandler = &'static (dyn Fn(&Req) -> Res);
 
-// pub mod prelude {}
+mod body_parser;
+mod error;
+mod request;
+mod response;
+mod route;
+mod server;
+mod server_config;
 
-pub mod body_parser;
-pub mod error;
-pub mod request;
-pub mod response;
-pub mod route;
-pub mod server;
-pub mod server_config;
+pub mod prelude {
+    pub use {
+        super::{
+            server::Plane,
+            server_config::ServerOpts::*
+        },
+        http::Method
+    };
+}

@@ -1,9 +1,5 @@
 use {
     crate::{
-        body_parser::{
-            FromReq,
-            ToRes
-        },
         error::RouteError,
         Req,
         Res,
@@ -11,15 +7,10 @@ use {
     },
     http::{
         Method,
-        Request,
         Response,
         Uri
     },
-    std::{
-        collections::HashMap,
-        fmt::Display,
-        str::FromStr
-    }
+    std::collections::HashMap
 };
 
 pub type RouteMap = HashMap<Route, RouteHandler>;
@@ -36,8 +27,8 @@ impl Route {
     }
 }
 
-impl<T> From<&Req<T>> for Route {
-    fn from(value: &Req<T>) -> Self {
+impl From<&Req> for Route {
+    fn from(value: &Req) -> Self {
         let path = value.uri().clone();
         let method = value.method().clone();
 
@@ -48,7 +39,7 @@ impl<T> From<&Req<T>> for Route {
 pub trait Handle<K, V> {
     fn get_handler(&self, route: K) -> anyhow::Result<RouteHandler>;
 
-    fn execute_handler(&self, req: &Req<()>) -> anyhow::Result<Res<()>>;
+    fn execute_handler(&self, req: &Req) -> anyhow::Result<Res>;
 }
 
 impl Handle<Route, RouteHandler> for RouteMap {
@@ -61,13 +52,11 @@ impl Handle<Route, RouteHandler> for RouteMap {
         Err(RouteError::NotFound(route).into())
     }
 
-    fn execute_handler(&self, req: &Req<()>) -> anyhow::Result<Res<()>> {
+    fn execute_handler(&self, req: &Req) -> anyhow::Result<Res> {
         let route = Route::from(req);
         let handler = self.get_handler(route)?;
 
-        let mut res = Response::new(());
-
-        let res = handler(req, &mut res);
+        let res = handler(req);
 
         Ok(res)
     }

@@ -1,12 +1,16 @@
 use {
     crate::{
+        body_parser::ToHTTP,
         request::IncomingRequest,
         route::{
             Handle,
             Route,
             RouteMap
         },
-        server_config::ServerConfig,
+        server_config::{
+            ServerConfig,
+            ServerOpts
+        },
         RouteHandler
     },
     anyhow::Result,
@@ -17,8 +21,14 @@ use {
     },
     std::{
         collections::HashMap,
-        io::Write,
-        net::TcpListener,
+        io::{
+            BufRead,
+            Write
+        },
+        net::{
+            IpAddr,
+            TcpListener
+        },
         str::FromStr
     }
 };
@@ -36,6 +46,18 @@ impl Plane {
             config:   ServerConfig::new(),
             handlers: HashMap::new()
         };
+    }
+
+    pub fn set(&mut self, opt: ServerOpts) -> Result<&mut Self> {
+        match opt {
+            ServerOpts::Host(host) => self.config.ip_addr = ServerConfig::parse_ip(host)?,
+            ServerOpts::Port(port) => self.config.port = port,
+            ServerOpts::Fallback(backup) => {
+                let _ = self.handlers.insert(Route::Fallback, backup);
+            }
+        };
+
+        Ok(self)
     }
 
     pub fn route(
@@ -59,17 +81,14 @@ impl Plane {
             let mut ireq = IncomingRequest::new(stream.try_clone()?);
             ireq.parse()?;
 
-            let res = self.handlers.execute_handler(&ireq.try_into()?).unwrap();
+            let mut res = self.handlers.execute_handler(&ireq.into()).unwrap();
 
-            let res = Builder::new();
+            for line in res.get_text()? {
+                let w = writeln!(stream, "{}", line.trim());
+                if let Err(_x) = w {}
+            }
 
-            // for line in res.to_http() {
-            //     dbg!(&line);
-            //     let w = writeln!(stream, "{}", line.trim());
-            //     if let Err(_x) = w {
-            //         stream.flush().unwrap();
-            //     }
-            // }
+            stream.flush()?;
         }
 
         return Ok(());

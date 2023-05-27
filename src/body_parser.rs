@@ -1,17 +1,36 @@
-use mime::Mime;
+use {
+    crate::Res,
+    http::Response,
+    std::io::Write
+};
 
-pub trait MimeParser {
-    type MimeType;
-    fn mime_type() -> Mime;
-}
-pub trait FromReq: MimeParser {
-    fn from_req_body(body: String) -> anyhow::Result<Self>
-    where
-        Self: Sized;
+pub trait ToHTTP {
+    fn write_to_stream(&mut self, mut stream: impl Write) -> anyhow::Result<()> {
+        let text = self.get_text()?;
+
+        for line in text {
+            writeln!(stream, "{}\n", line)?
+        }
+        Ok(())
+    }
+
+    fn get_text(&mut self) -> anyhow::Result<Vec<String>>;
 }
 
-pub trait ToRes: MimeParser {
-    fn to_req_body(body: Self::MimeType) -> anyhow::Result<Self>
-    where
-        Self: Sized;
+impl ToHTTP for Res {
+    fn get_text(&mut self) -> anyhow::Result<Vec<String>> {
+        let mut v = vec![];
+        v.push(format!("{} {} {}", "HTTP/1.1", self.status(), "OK"));
+
+        let mut headers: Vec<_> = self
+            .headers()
+            .into_iter()
+            .map(|(name, value)| format!("{}: {}", name, value.to_str().unwrap()))
+            .collect();
+
+        v.append(&mut headers);
+        v.append(self.body_mut());
+
+        Ok(v)
+    }
 }

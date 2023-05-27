@@ -46,7 +46,9 @@ impl ServerConfig {
         match opt {
             ServerOpts::Host(ip) => self.ip_addr = IpAddr::from_str(ip)?,
             ServerOpts::Port(port) => self.port = port,
-            ServerOpts::Fallback(backup) => self.fallback = Some(backup)
+            ServerOpts::Fallback(backup) => {
+                self.fallback = Some(backup);
+            }
         }
         Ok(self)
     }
@@ -56,5 +58,9 @@ impl ServerConfig {
             Ok(_) => Ok(()),
             Err(_) => Err(ConfigError::PortInUse(self.port.clone()).into())
         }
+    }
+
+    pub fn parse_ip(ip: &str) -> anyhow::Result<IpAddr> {
+        Ok(IpAddr::V4(Ipv4Addr::from_str(ip)?))
     }
 }
