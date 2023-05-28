@@ -11,23 +11,30 @@
     format_args_nl
 )]
 
-use http::{
-    Request,
-    Response
+use {
+    self::server::D,
+    http::{
+        Request,
+        Response
+    }
 };
 
 pub type Req = Request<Vec<String>>;
 pub type Res = Response<Vec<String>>;
 
+enum DE {
+    One(RouteHandler)
+}
+
 pub type RouteHandler = &'static (dyn Fn(&Req) -> Res);
 
-mod body_parser;
-mod error;
+pub mod body_parser;
+pub mod error;
 pub mod init;
-mod request;
-mod route;
-mod server;
-mod server_config;
+pub mod request;
+pub mod route;
+pub mod server;
+pub mod server_config;
 
 pub mod prelude {
     pub use {

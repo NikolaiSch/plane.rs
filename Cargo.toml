@@ -15,3 +15,8 @@
  tracing            = { version = "0.1.37", features = ["log"] }
  tracing-subscriber = "0.3.17"
  tracing-timing     = "0.6.0"
+
+ handlebars    = { version = "4.3.7", features = [] }
+ headers       = { version = "0.3.8", features = [] }
+ matchit       = { version = "0.7.0", features = [] }
+ typed-builder = { version = "*", features = [] }

@@ -3,6 +3,7 @@ use {
         body_parser::ToHTTP,
         request::IncomingRequest,
         route::{
+            self,
             Handle,
             Route,
             RouteMap
@@ -11,6 +12,7 @@ use {
             ServerConfig,
             ServerOpts
         },
+        Req,
         RouteHandler
     },
     anyhow::Result,
@@ -25,37 +27,49 @@ use {
         str::FromStr
     },
 <<<<<<< HEAD
+<<<<<<< HEAD
     tokio::{
+=======
+    tokio::{
+        fs::read,
+>>>>>>> parent of 323dabb (Revert "i dont even know at this point")
         net::{
             TcpListener,
             TcpStream
         }
+<<<<<<< HEAD
 =======
     tokio::net::{
         TcpListener,
         TcpStream
 >>>>>>> parent of 8fae1cc (i dont even know at this point)
+=======
+>>>>>>> parent of 323dabb (Revert "i dont even know at this point")
     },
     tracing::{
         event,
         field::*,
         instrument,
 <<<<<<< HEAD
+<<<<<<< HEAD
         span,
         Level
     }
 };
 =======
+=======
+        trace,
+>>>>>>> parent of 323dabb (Revert "i dont even know at this point")
         Level
     }
 };
 #[derive(Default)]
 pub struct D {}
 impl D {
-    fn Default() -> _ {
+    fn default() -> Route {
         Route {
-            method: Method::GET,
-            path:   Uri(s)
+            path:   Uri::default(),
+            method: Method::GET
         }
     }
 }
@@ -68,11 +82,15 @@ pub struct Plane {
 
 impl Plane {
 <<<<<<< HEAD
+<<<<<<< HEAD
     /// Use this function to create a new instance of plane
     /// then, call helper methods on that (builder)
 =======
     #[instrument(level = Level::DEBUG, skip_all)]
 >>>>>>> parent of 8fae1cc (i dont even know at this point)
+=======
+    #[instrument(level = Level::INFO, skip_all)]
+>>>>>>> parent of 323dabb (Revert "i dont even know at this point")
     pub fn board() -> Plane {
         Plane {
             config:   ServerConfig::new(),
@@ -83,12 +101,16 @@ impl Plane {
 
 =======
         };
-        event!(Level::DEBUG, "Boarding!");
+        event!(Level::INFO, "Boarding!");
         p
     }
 
+<<<<<<< HEAD
     #[instrument(level = "TRACE", skip_all)]
 >>>>>>> parent of 8fae1cc (i dont even know at this point)
+=======
+    #[instrument(level = Level::TRACE, skip(self))]
+>>>>>>> parent of 323dabb (Revert "i dont even know at this point")
     pub fn set(&mut self, opt: ServerOpts) -> Result<&mut Self> {
         let span = span!(Level::TRACE, "match_server_opts");
         let _enter = span.enter();
@@ -97,12 +119,18 @@ impl Plane {
             ServerOpts::Port(port) => self.config.port = port,
             ServerOpts::Fallback(backup) => {
 <<<<<<< HEAD
+<<<<<<< HEAD
                 let _ = self.handlers.insert(Route::Fallback, backup);
 =======
                 let _ = self.handlers.insert(D::Default(), backup);
 >>>>>>> parent of 8fae1cc (i dont even know at this point)
+=======
+                let _ = self.handlers.insert(D::default(), backup);
+>>>>>>> parent of 323dabb (Revert "i dont even know at this point")
             }
         };
+
+        trace!(opt = ?opt);
 
         Ok(self)
     }
@@ -114,27 +142,30 @@ impl Plane {
 =======
     #[instrument(level = "INFO", "New Route", skip_all)]
     pub fn route(&mut self, route: Route, handler: RouteHandler) -> Result<&mut Plane> {
+<<<<<<< HEAD
         let route = Route::new(Method::GET, Uri::from_str("/")?);
 >>>>>>> parent of 8fae1cc (i dont even know at this point)
+=======
+>>>>>>> parent of 323dabb (Revert "i dont even know at this point")
         self.handlers.insert(route, handler);
         Ok(self)
     }
 
     #[instrument(level = "INFO", "Connection Handler", skip_all)]
     async fn conn_handler(&self, conn: TcpStream) -> anyhow::Result<()> {
-        let (read, mut write) = conn.into_split();
+        let stream = conn;
         event!(Level::TRACE, "Successfully split streams");
 
-        let ireq = IncomingRequest::new(read).await?;
+        let ireq = IncomingRequest::new(conn).await?;
         event!(
             Level::TRACE,
             "Created and parsed the IncomingRequest the Tcp Server"
         );
-
-        let mut res = self.handlers.execute_handler(&ireq.into())?;
+        let r = Req::from(route::conn);
+        let h(/* &Request<Vec<String>> */) = self.handlers.get();
         event!(Level::TRACE, "Created and parsed an IncomingRequest from stream");
 
-        res.write_to_stream(write.borrow_mut()).await?;
+        res.write_to_stream(read.borrow_mut()).await?;
         event!(Level::INFO, "Successfully Wrote the response to the client");
 
         Ok(())

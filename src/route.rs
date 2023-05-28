@@ -5,8 +5,10 @@ use {
         Res,
         RouteHandler
     },
+    anyhow::bail,
     http::{
         Method,
+        Response,
         Uri
     },
 <<<<<<< HEAD
@@ -16,8 +18,17 @@ use {
         collections::HashMap,
         str::FromStr
     },
+<<<<<<< HEAD
 >>>>>>> parent of 8fae1cc (i dont even know at this point)
     tracing::instrument
+=======
+    tracing::{
+        debug,
+        instrument,
+        trace,
+        Level
+    }
+>>>>>>> parent of 323dabb (Revert "i dont even know at this point")
 };
 
 pub type RouteMap = HashMap<Route, RouteHandler>;
@@ -29,9 +40,14 @@ pub enum Route {
     Fallback
 =======
 pub struct Route {
+<<<<<<< HEAD
     pub(crate) path: Uri,
     method:          Method
 >>>>>>> parent of 8fae1cc (i dont even know at this point)
+=======
+    pub path:   Uri,
+    pub method: Method
+>>>>>>> parent of 323dabb (Revert "i dont even know at this point")
 }
 
 impl Route {
@@ -50,10 +66,11 @@ impl From<&Req> for Route {
 }
 
 pub trait Handle<K, V> {
-    fn get_handler(&self, route: K) -> anyhow::Result<RouteHandler>;
+    fn get_handler(&self, route: K, res: &Res) -> anyhow::Result<RouteHandler>;
 
     fn execute_handler(&self, req: &Req) -> anyhow::Result<Res>;
 }
+<<<<<<< HEAD
 
 impl Handle<Route, RouteHandler> for RouteMap {
     #[instrument(level = "INFO", skip(self))]
@@ -79,3 +96,5 @@ impl Handle<Route, RouteHandler> for RouteMap {
         Ok(res)
     }
 }
+=======
+>>>>>>> parent of 323dabb (Revert "i dont even know at this point")

@@ -26,6 +26,16 @@ pub enum ServerOpts {
     Fallback(RouteHandler)
 }
 
+impl std::fmt::Debug for ServerOpts {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Host(arg0) => f.debug_tuple("Host").field(arg0).finish(),
+            Self::Port(arg0) => f.debug_tuple("Port").field(arg0).finish(),
+            Self::Fallback(_) => f.debug_tuple("Fallback").finish()
+        }
+    }
+}
+
 pub struct ServerConfig {
     pub ip_addr:  IpAddr,
     pub port:     u16,
@@ -50,14 +60,15 @@ impl ServerConfig {
         }
     }
 
-    #[instrument(level = Level::TRACE, fields(ip = self.ip_addr.to_string(), port = self.port))]
+    #[instrument(level = Level::DEBUG, fields(ip = self.ip_addr.to_string(), port = self.port))]
     pub fn get_socket_addr(&self) -> SocketAddr {
-        SocketAddr::new(self.ip_addr, self.port)
+        let x = SocketAddr::new(self.ip_addr, self.port);
+        debug!("The current socket address is {}", x.to_string());
+        x
     }
 
+    #[instrument]
     pub fn set(&mut self, opt: ServerOpts) -> anyhow::Result<&mut Self> {
-        let _span = span!(Level::TRACE, "setting_server_conf_opts").entered();
-
         match opt {
             ServerOpts::Host(ip) => self.ip_addr = IpAddr::from_str(ip)?,
             ServerOpts::Port(port) => self.port = port,
@@ -65,14 +76,18 @@ impl ServerConfig {
                 self.fallback = Some(backup);
             }
         }
+        trace!(opt = ?opt);
 
         Ok(self)
     }
 
+    #[instrument]
     pub fn parse_ip(ip: &str) -> anyhow::Result<IpAddr> {
-        let _span = span!(Level::TRACE, "parsing_ip_address").entered();
+        let x = IpAddr::V4(Ipv4Addr::from_str(ip)?);
 
-        Ok(IpAddr::V4(Ipv4Addr::from_str(ip)?))
+        debug!(x = ?x);
+
+        Ok(x)
     }
 }
 
