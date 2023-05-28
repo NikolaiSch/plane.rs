@@ -3,6 +3,7 @@ use {
         body_parser::ToHTTP,
         request::IncomingRequest,
         route::{
+            self,
             Handle,
             Route,
             RouteMap
@@ -11,6 +12,7 @@ use {
             ServerConfig,
             ServerOpts
         },
+        Req,
         RouteHandler
     },
     anyhow::Result,
@@ -26,24 +28,28 @@ use {
         path,
         str::FromStr
     },
-    tokio::net::{
-        TcpListener,
-        TcpStream
+    tokio::{
+        fs::read,
+        net::{
+            TcpListener,
+            TcpStream
+        }
     },
     tracing::{
         event,
         field::*,
         instrument,
+        trace,
         Level
     }
 };
 #[derive(Default)]
 pub struct D {}
 impl D {
-    fn Default() -> _ {
+    fn default() -> Route {
         Route {
-            method: Method::GET,
-            path:   Uri(s)
+            path:   Uri::default(),
+            method: Method::GET
         }
     }
 }
@@ -54,32 +60,33 @@ pub struct Plane {
 }
 
 impl Plane {
-    #[instrument(level = Level::DEBUG, skip_all)]
+    #[instrument(level = Level::INFO, skip_all)]
     pub fn board() -> Plane {
         let p = Plane {
             config:   ServerConfig::new(),
             handlers: HashMap::new()
         };
-        event!(Level::DEBUG, "Boarding!");
+        event!(Level::INFO, "Boarding!");
         p
     }
 
-    #[instrument(level = "TRACE", skip_all)]
+    #[instrument(level = Level::TRACE, skip(self))]
     pub fn set(&mut self, opt: ServerOpts) -> Result<&mut Self> {
         match opt {
             ServerOpts::Host(host) => self.config.ip_addr = ServerConfig::parse_ip(host)?,
             ServerOpts::Port(port) => self.config.port = port,
             ServerOpts::Fallback(backup) => {
-                let _ = self.handlers.insert(D::Default(), backup);
+                let _ = self.handlers.insert(D::default(), backup);
             }
         };
+
+        trace!(opt = ?opt);
 
         Ok(self)
     }
 
     #[instrument(level = "INFO", "New Route", skip_all)]
     pub fn route(&mut self, route: Route, handler: RouteHandler) -> Result<&mut Plane> {
-        let route = Route::new(Method::GET, Uri::from_str("/")?);
         self.handlers.insert(route, handler);
 
         event!(Level::INFO, "New Route! {} {}", Uri::from_str("/")?, Method::GET);
@@ -89,19 +96,19 @@ impl Plane {
 
     #[instrument(level = "DEBUG", "Connection Handler", skip_all, ret, err)]
     async fn conn_handler(&self, conn: TcpStream) -> anyhow::Result<()> {
-        let (read, mut write) = conn.into_split();
+        let stream = conn;
         event!(Level::TRACE, "Successfully split streams");
 
-        let ireq = IncomingRequest::new(read).await?;
+        let ireq = IncomingRequest::new(conn).await?;
         event!(
             Level::TRACE,
             "Created and parsed the IncomingRequest the Tcp Server"
         );
-
-        let mut res = self.handlers.execute_handler(&ireq.into())?;
+        let r = Req::from(route::conn);
+        let h(/* &Request<Vec<String>> */) = self.handlers.get();
         event!(Level::TRACE, "Created and parsed an IncomingRequest from stream");
 
-        res.write_to_stream(write.borrow_mut()).await?;
+        res.write_to_stream(read.borrow_mut()).await?;
         event!(Level::INFO, "Successfully Wrote the response to the client");
 
         Ok(())
