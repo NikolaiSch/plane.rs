@@ -3,15 +3,12 @@ use {
     http::{
         Request,
         Response,
-        StatusCode,
-        Uri
+        StatusCode
     },
     plane_rs::{
         init::init,
-        prelude::*,
-        route::Route
+        prelude::*
     },
-    std::str::FromStr,
     tracing::{
         instrument,
         Level
@@ -26,17 +23,7 @@ async fn main() -> Result<()> {
     Plane::board()
         .set(Host("127.0.0.1"))?
         .set(Port(7574))?
-        .route(Route::new(Method::GET, Uri::from_str("/s/e/")?), &(req))?
-        .takeoff()
-        .await?;
+        .route(Route, &handle(req));
 
     Ok(())
-}
-
-fn req(req: &Request<Vec<String>>) -> Response<Vec<String>> {
-    let mut res: Response<Vec<String>> = Response::default();
-
-    res.body_mut().push("Working".to_string());
-
-    res
 }

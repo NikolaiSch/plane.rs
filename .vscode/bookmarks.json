@@ -1,6 +1,16 @@
 {
 	"files": [
 		{
+			"path": "src/server_config.rs",
+			"bookmarks": [
+				{
+					"line": 31,
+					"column": 14,
+					"label": "ServerConfig"
+				}
+			]
+		},
+		{
 			"path": "src/request/headers.rs",
 			"bookmarks": [
 				{
@@ -22,6 +32,16 @@
 					"line": 54,
 					"column": 17,
 					"label": "RequestParser"
+				}
+			]
+		},
+		{
+			"path": "src/route.rs",
+			"bookmarks": [
+				{
+					"line": 27,
+					"column": 6,
+					"label": "Route"
 				}
 			]
 		},
