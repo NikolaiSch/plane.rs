@@ -25,19 +25,7 @@ use {
         str::FromStr
     },
     tokio::{
-        io::{
-            AsyncBufRead,
-            AsyncBufReadExt,
-            AsyncRead,
-            AsyncReadExt,
-            AsyncWrite,
-            AsyncWriteExt
-        },
         net::{
-            tcp::{
-                OwnedReadHalf,
-                OwnedWriteHalf
-            },
             TcpListener,
             TcpStream
         }
@@ -45,12 +33,8 @@ use {
     tracing::{
         event,
         field::*,
-        info,
-        info_span,
         instrument,
         span,
-        warn,
-        warn_span,
         Level
     }
 };
@@ -122,6 +106,6 @@ impl Plane {
 
     #[instrument(level = Level::INFO, fields(config = Empty), skip_all)]
     pub async fn takeoff(&mut self) -> Result<()> {
-        Ok(self.event_loop().await?)
+        self.event_loop().await
     }
 }

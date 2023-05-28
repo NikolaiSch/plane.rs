@@ -1,13 +1,12 @@
 use {
     tracing::{
         dispatcher,
-        Dispatch,
-        *
+        Dispatch
     },
     tracing_subscriber::FmtSubscriber
 };
 
-pub fn init() -> () {
+pub fn init() {
     let subscriber = FmtSubscriber::builder().pretty().with_level(true).finish();
 
     let dis = Dispatch::new(subscriber);

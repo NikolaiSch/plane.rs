@@ -9,17 +9,8 @@ use {
         prelude::*
     },
     tracing::{
-        dispatcher,
-        dispatcher::Dispatch,
-        info,
         instrument,
-        metadata::LevelFilter,
-        span,
         Level
-    },
-    tracing_subscriber::{
-        fmt::format::FmtSpan,
-        FmtSubscriber
     }
 };
 

@@ -5,7 +5,6 @@ pub use std::{
 
 use {
     crate::{
-        error::ConfigError,
         RouteHandler
     },
     std::{
@@ -57,7 +56,7 @@ impl ServerConfig {
     }
 
     pub fn set(&mut self, opt: ServerOpts) -> anyhow::Result<&mut Self> {
-        let span = span!(Level::TRACE, "setting_server_conf_opts").entered();
+        let _span = span!(Level::TRACE, "setting_server_conf_opts").entered();
 
         match opt {
             ServerOpts::Host(ip) => self.ip_addr = IpAddr::from_str(ip)?,
@@ -71,9 +70,9 @@ impl ServerConfig {
     }
 
     pub fn parse_ip(ip: &str) -> anyhow::Result<IpAddr> {
-        let span = span!(Level::TRACE, "parsing_ip_address").entered();
+        let _span = span!(Level::TRACE, "parsing_ip_address").entered();
 
-        return Ok(IpAddr::V4(Ipv4Addr::from_str(ip)?));
+        Ok(IpAddr::V4(Ipv4Addr::from_str(ip)?))
     }
 }
 

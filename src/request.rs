@@ -49,7 +49,7 @@ impl IncomingRequest {
 
         s.parse().await?;
 
-        return Ok(s);
+        Ok(s)
     }
 
     async fn parse(&mut self) -> Result<()> {
