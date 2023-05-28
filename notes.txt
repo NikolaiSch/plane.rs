@@ -4,4 +4,3 @@ important methods on instrument:
 - Empty (struct)
 - follows_from
 - tracing
-- skip_all
