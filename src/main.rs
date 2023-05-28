@@ -1,6 +1,7 @@
 use {
     anyhow::Result,
     http::{
+        Request,
         Response,
         StatusCode
     },
@@ -15,23 +16,14 @@ use {
 };
 
 #[tokio::main]
-#[instrument(level = Level::INFO, name = "main_span")]
+#[instrument(level = Level::INFO, name = "main_function")]
 async fn main() -> Result<()> {
     init();
 
     Plane::board()
         .set(Host("127.0.0.1"))?
         .set(Port(7574))?
-        .route(Method::GET, "/", &|req| {
-            let (mut parts, _) = Response::new(()).into_parts();
-
-            parts.version = req.version();
-            parts.status = StatusCode::OK;
-
-            Response::from_parts(parts, vec![])
-        })?
-        .takeoff()
-        .await?;
+        .route(Route, &handle(req));
 
     Ok(())
 }

@@ -4,9 +4,7 @@ pub use std::{
 };
 
 use {
-    crate::{
-        RouteHandler
-    },
+    crate::RouteHandler,
     std::{
         fmt::Formatter,
         net::{

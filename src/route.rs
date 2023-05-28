@@ -9,21 +9,24 @@ use {
         Method,
         Uri
     },
-    std::collections::HashMap,
+    std::{
+        collections::HashMap,
+        str::FromStr
+    },
     tracing::instrument
 };
 
 pub type RouteMap = HashMap<Route, RouteHandler>;
 
 #[derive(Hash, PartialEq, Eq, Debug, Clone)]
-pub enum Route {
-    Standard { path: Uri, method: Method },
-    Fallback
+pub struct Route {
+    pub(crate) path: Uri,
+    method:          Method
 }
 
 impl Route {
     pub fn new(method: Method, path: Uri) -> Route {
-        Route::Standard { path, method }
+        Route { method, path }
     }
 }
 
@@ -32,7 +35,7 @@ impl From<&Req> for Route {
         let path = value.uri().clone();
         let method = value.method().clone();
 
-        Route::Standard { path, method }
+        Route::new(method, path)
     }
 }
 
@@ -47,7 +50,7 @@ impl Handle<Route, RouteHandler> for RouteMap {
     fn get_handler(&self, route: Route) -> anyhow::Result<RouteHandler> {
         if let Some(&handler) = self.get(&route) {
             return Ok(handler);
-        } else if let Some(&handler) = self.get(&Route::Fallback) {
+        } else if let Some(&handler) = self.get(&Route::new(Method::GET, Uri::from_str("/")?)) {
             return Ok(handler);
         }
         Err(RouteError::NotFound(route).into())
