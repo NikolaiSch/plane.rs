@@ -20,6 +20,7 @@ use {
     },
     std::{
         self,
+        borrow::BorrowMut,
         collections::HashMap,
         str::FromStr
     },
@@ -40,6 +41,17 @@ use {
             TcpListener,
             TcpStream
         }
+    },
+    tracing::{
+        event,
+        field::*,
+        info,
+        info_span,
+        instrument,
+        span,
+        warn,
+        warn_span,
+        Level
     }
 };
 
@@ -59,6 +71,8 @@ impl Plane {
     }
 
     pub fn set(&mut self, opt: ServerOpts) -> Result<&mut Self> {
+        let span = span!(Level::TRACE, "match_server_opts");
+        let _enter = span.enter();
         match opt {
             ServerOpts::Host(host) => self.config.ip_addr = ServerConfig::parse_ip(host)?,
             ServerOpts::Port(port) => self.config.port = port,
@@ -70,25 +84,29 @@ impl Plane {
         Ok(self)
     }
 
-    pub fn route(
-        &mut self,
-        method: Method,
-        path: &str,
-        handler: RouteHandler
-    ) -> Result<&mut Plane> {
+    pub fn route(&mut self, method: Method, path: &str, handler: RouteHandler) -> Result<&mut Plane> {
         let route = Route::new(method, Uri::from_str(path)?);
 
         self.handlers.insert(route, handler);
         Ok(self)
     }
 
+    #[instrument(level = "INFO", "Connection Handler", skip_all)]
     async fn conn_handler(&self, conn: TcpStream) -> anyhow::Result<()> {
-        let (read, write) = conn.into_split();
-        let ireq = IncomingRequest::new(read)?;
+        let (read, mut write) = conn.into_split();
+        event!(Level::TRACE, "Successfully split streams");
+
+        let ireq = IncomingRequest::new(read).await?;
+        event!(
+            Level::TRACE,
+            "Created and parsed the IncomingRequest the Tcp Server"
+        );
 
         let mut res = self.handlers.execute_handler(&ireq.into())?;
+        event!(Level::TRACE, "Created and parsed an IncomingRequest from stream");
 
-        res.write_to_stream(conn)?;
+        res.write_to_stream(write.borrow_mut()).await?;
+        event!(Level::INFO, "Successfully Wrote the response to the client");
 
         Ok(())
     }
@@ -96,14 +114,14 @@ impl Plane {
     async fn event_loop(&self) -> anyhow::Result<()> {
         let listener = TcpListener::bind(self.config.get_socket_addr()).await?;
         loop {
-            for (conn, socket) in listener.accept().await {
-                self.conn_handler(conn).await;
+            if let Ok((conn, _socket)) = listener.accept().await {
+                self.conn_handler(conn).await?;
             }
         }
-        Ok(())
     }
 
+    #[instrument(level = Level::INFO, fields(config = Empty), skip_all)]
     pub async fn takeoff(&mut self) -> Result<()> {
-        self.event_loop().await?
+        Ok(self.event_loop().await?)
     }
 }

@@ -6,7 +6,9 @@
     associated_type_bounds,
     associated_type_defaults,
     iterator_try_collect,
-    async_closure
+    async_closure,
+    async_fn_in_trait,
+    format_args_nl
 )]
 
 use http::{
@@ -21,6 +23,7 @@ pub type RouteHandler = &'static (dyn Fn(&Req) -> Res);
 
 mod body_parser;
 mod error;
+pub mod init;
 mod request;
 mod route;
 mod server;

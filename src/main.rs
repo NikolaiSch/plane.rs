@@ -4,14 +4,31 @@ use {
         Response,
         StatusCode
     },
-    plane_rs::prelude::*
+    plane_rs::{
+        init::init,
+        prelude::*
+    },
+    tracing::{
+        dispatcher,
+        dispatcher::Dispatch,
+        info,
+        instrument,
+        metadata::LevelFilter,
+        span,
+        Level
+    },
+    tracing_subscriber::{
+        fmt::format::FmtSpan,
+        FmtSubscriber
+    }
 };
 
 #[tokio::main]
+#[instrument(level = Level::INFO, name = "main_span")]
 async fn main() -> Result<()> {
-    let mut plane = Plane::board();
+    init();
 
-    plane
+    Plane::board()
         .set(Host("127.0.0.1"))?
         .set(Port(7574))?
         .route(Method::GET, "/", &|req| {
@@ -22,7 +39,8 @@ async fn main() -> Result<()> {
 
             Response::from_parts(parts, vec![])
         })?
-        .takeoff();
+        .takeoff()
+        .await?;
 
     Ok(())
 }
