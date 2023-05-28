@@ -4,7 +4,9 @@
     try_trait_v2,
     const_trait_impl,
     associated_type_bounds,
-    associated_type_defaults
+    associated_type_defaults,
+    iterator_try_collect,
+    async_closure
 )]
 
 use http::{

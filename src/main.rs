@@ -7,7 +7,8 @@ use {
     plane_rs::prelude::*
 };
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let mut plane = Plane::board();
 
     plane

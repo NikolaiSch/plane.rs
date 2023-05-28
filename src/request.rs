@@ -17,12 +17,11 @@ use {
     },
     std::{
         default::default,
-        io::{
-            BufRead,
-            BufReader,
-            Read
-        },
         str::FromStr
+    },
+    tokio::{
+        io::AsyncBufReadExt,
+        join
     }
 };
 
@@ -40,27 +39,29 @@ pub struct IncomingRequest {
 }
 
 impl IncomingRequest {
-    pub fn new(stream: impl Read) -> Result<Self> {
+    pub async fn new(stream: tokio::net::tcp::OwnedReadHalf) -> Result<Self> {
+        let mut lines = tokio::io::BufReader::new(stream).lines();
+        let mut v = vec![];
+        while let Some(x) = lines.next_line().await? {
+            v.push(x);
+        }
         let mut s = Self {
-            reader: BufReader::new(stream)
-                .lines()
-                .map(|x| x.unwrap())
-                .take_while(|x| !x.is_empty())
-                .collect(),
+            reader: v,
             data:   Request::new(vec![])
         };
 
-        s.parse()?;
+        s.parse().await?;
 
         return Ok(s);
     }
 
-    fn parse(&mut self) -> Result<()> {
+    async fn parse(&mut self) -> Result<()> {
         let mut req = UTF8Request::new(self)?;
 
         let mut opts = req.parse_first_line()?;
+        let mut opts2 = &mut (req.parse_headers()?.into_iter().map(Opts::Header).collect());
 
-        opts.append(&mut (req.parse_headers()?.into_iter().map(Opts::Header).collect()));
+        tokio::join!(opts, opts2).await;
 
         for i in opts.into_iter() {
             match i {
@@ -100,7 +101,7 @@ impl UTF8Request {
         }
     }
 
-    pub fn parse_first_line(&mut self) -> Result<Vec<Opts>> {
+    pub async fn parse_first_line(&mut self) -> Result<Vec<Opts>> {
         let opts = self
             .first_line
             .split(' ')
@@ -118,11 +119,21 @@ impl UTF8Request {
         Ok(opts)
     }
 
-    pub fn parse_headers(&self) -> Result<Vec<(HeaderName, HeaderValue)>> {
-        self.rest.iter().map(|x| Self::parse_header(x)).collect()
+    pub async fn parse_headers(&self) -> Result<Vec<(HeaderName, HeaderValue)>> {
+        let i = self.rest.iter();
+        let mut v = vec![];
+        for x in i {
+            v.push(tokio::spawn(async move { Self::parse_header(x).await }))
+        }
+        let mut a = vec![];
+        for i in v.array_chunks::<5>() {
+            join!(.. i)
+        }
+
+        Ok(i)
     }
 
-    fn parse_header(header: &str) -> Result<(HeaderName, HeaderValue)> {
+    async fn parse_header(header: &str) -> Result<(HeaderName, HeaderValue)> {
         let parts: Vec<&str> = header.split(':').collect();
 
         if let Some((&f, s)) = parts.split_first() {

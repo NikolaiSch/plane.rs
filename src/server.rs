@@ -21,11 +21,25 @@ use {
     std::{
         self,
         collections::HashMap,
+        str::FromStr
+    },
+    tokio::{
+        io::{
+            AsyncBufRead,
+            AsyncBufReadExt,
+            AsyncRead,
+            AsyncReadExt,
+            AsyncWrite,
+            AsyncWriteExt
+        },
         net::{
+            tcp::{
+                OwnedReadHalf,
+                OwnedWriteHalf
+            },
             TcpListener,
             TcpStream
-        },
-        str::FromStr
+        }
     }
 };
 
@@ -68,8 +82,9 @@ impl Plane {
         Ok(self)
     }
 
-    fn conn_handler(&self, conn: TcpStream) -> anyhow::Result<()> {
-        let ireq = IncomingRequest::new(conn.try_clone()?)?;
+    async fn conn_handler(&self, conn: TcpStream) -> anyhow::Result<()> {
+        let (read, write) = conn.into_split();
+        let ireq = IncomingRequest::new(read)?;
 
         let mut res = self.handlers.execute_handler(&ireq.into())?;
 
@@ -78,17 +93,17 @@ impl Plane {
         Ok(())
     }
 
-    fn event_loop(&self) -> anyhow::Result<()> {
-        let listener = TcpListener::bind(self.config.get_socket_addr())?;
-
-        for conn in listener.incoming() {
-            self.conn_handler(conn?)?;
+    async fn event_loop(&self) -> anyhow::Result<()> {
+        let listener = TcpListener::bind(self.config.get_socket_addr()).await?;
+        loop {
+            for (conn, socket) in listener.accept().await {
+                self.conn_handler(conn).await;
+            }
         }
-
         Ok(())
     }
 
-    pub fn takeoff(&mut self) {
-        self.event_loop().unwrap();
+    pub async fn takeoff(&mut self) -> Result<()> {
+        self.event_loop().await?
     }
 }
