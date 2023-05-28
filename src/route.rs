@@ -9,7 +9,8 @@ use {
         Method,
         Uri
     },
-    std::collections::HashMap
+    std::collections::HashMap,
+    tracing::instrument
 };
 
 pub type RouteMap = HashMap<Route, RouteHandler>;
@@ -42,6 +43,7 @@ pub trait Handle<K, V> {
 }
 
 impl Handle<Route, RouteHandler> for RouteMap {
+    #[instrument(level = "INFO", skip(self))]
     fn get_handler(&self, route: Route) -> anyhow::Result<RouteHandler> {
         if let Some(&handler) = self.get(&route) {
             return Ok(handler);

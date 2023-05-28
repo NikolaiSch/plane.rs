@@ -6,10 +6,12 @@
  # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
- anyhow    = { version = "1.0.71", features = [] }
- http      = "0.2.9"
- itertools = "0.10.5"
- mime      = "0.3.17"
- #  strum      = { version = "0.24.1", features = ["derive", "phf"] }
- thiserror = { version = "1.0.40", features = [] }
- tokio     = { version = "1", features = ["full"] }
+ anyhow = { version = "1.0.71", features = [] }
+ http   = "0.2.9"
+ mime   = "0.3.17"
+ #  test-log           = { version = "0.2.11", features = ["tracing"] }
+ thiserror          = { version = "1.0.40", features = [] }
+ tokio              = { version = "1", features = ["full"] }
+ tracing            = { version = "0.1.37", features = ["log"] }
+ tracing-subscriber = "0.3.17"
+ tracing-timing     = "0.6.0"
