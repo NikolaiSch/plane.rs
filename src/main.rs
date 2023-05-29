@@ -1,6 +1,7 @@
 use {
     anyhow::Result,
     http::{
+        Request,
         Response,
         StatusCode,
         Uri
@@ -25,7 +26,6 @@ async fn main() -> Result<()> {
     Plane::board()
         .set(Host("127.0.0.1"))?
         .set(Port(7574))?
-<<<<<<< HEAD
         .route(Method::GET, "/", &|req| {
             let (mut parts, _) = Response::new(()).into_parts();
 
@@ -34,9 +34,6 @@ async fn main() -> Result<()> {
 
             Response::from_parts(parts, vec![])
         })?
-=======
-        .route(Route::new(Method::GET, Uri::from_str("/s/e/")?), &(req))?
->>>>>>> parent of 323dabb (Revert "i dont even know at this point")
         .takeoff()
         .await?;
 
