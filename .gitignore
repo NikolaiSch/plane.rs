@@ -1,5 +1,4 @@
 target
-*.json
 .DS_Store
 .vscode/bookmarks.json
-test_data/.DS_Store
+/.DS_Store

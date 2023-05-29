@@ -4,5 +4,8 @@
         "Cargo.toml": "Cargo.lock",
         "*.rs": "${capture}_test.rs"
     },
-    "rustTestExplorer.rootCargoManifestFilePath": "/Users/vii/plane_rs/crates/plane_rs_types/Cargo.toml"
+    "rustTestExplorer.rootCargoManifestFilePath": "/Users/vii/plane_rs/crates/plane_rs_types/Cargo.toml",
+    "yaml.schemas": {
+        "https://json.schemastore.org/pre-commit-hooks.json": "file:///Users/vii/plane_rs_types/.pre-commit-hooks.yaml"
+    }
 }
