@@ -1,6 +1,0 @@
-important methods on instrument:
-- name
-- level
-- Empty (struct)
-- follows_from
-- tracing

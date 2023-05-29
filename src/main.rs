@@ -8,17 +8,16 @@ use {
     },
     plane_rs::{
         init::init,
-        prelude::*,
-        route::Route
+        prelude::*
     },
-    std::str::FromStr,
+    tokio::main,
     tracing::{
         instrument,
         Level
     }
 };
 
-#[tokio::main]
+#[main]
 #[instrument(level = Level::INFO, name = "main_span")]
 async fn main() -> Result<()> {
     init();
@@ -26,7 +25,7 @@ async fn main() -> Result<()> {
     Plane::board()
         .set(Host("127.0.0.1"))?
         .set(Port(7574))?
-        .route(Method::GET, "/", &|req| {
+        .route(Method::GET, r#"/"#, &|req| {
             let (mut parts, _) = Response::new(()).into_parts();
 
             parts.version = req.version();
