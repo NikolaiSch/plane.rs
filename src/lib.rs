@@ -35,6 +35,7 @@ pub mod request;
 pub mod route;
 pub mod server;
 pub mod server_config;
+pub mod traits;
 
 pub mod prelude {
     pub use {
