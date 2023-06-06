@@ -33,7 +33,9 @@ pub struct Route {
 
 impl Route {
     pub fn new(method: Method, path: Uri) -> Route {
-        Route::Standard { path, method }
+        Route {
+            method, path
+        }
     }
 }
 
@@ -42,12 +44,14 @@ impl From<&Req> for Route {
         let path = value.uri().clone();
         let method = value.method().clone();
 
-        Route::Standard { path, method }
+        Route {
+            method, path
+        }
     }
 }
 
 pub trait Handle<K, V> {
-    fn get_handler(&self, route: K, res: &Res) -> anyhow::Result<RouteHandler>;
+    fn get_handler(&self, route: K) -> anyhow::Result<RouteHandler>;
 
     fn execute_handler(&self, req: &Req) -> anyhow::Result<Res>;
 }

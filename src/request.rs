@@ -1,92 +1,69 @@
 use std::iter;
 
+use tokio::io::AsyncRead;
+
 use {
-    crate::{
-        error::RequestError,
-        Req
-    },
-    anyhow::{
-        bail,
-        Result
-    },
-    http::{
-        HeaderName,
-        HeaderValue,
-        Method,
-        Request,
-        Uri,
-        Version
-    },
+    crate::{error::RequestError, Req},
+    anyhow::{bail, Result},
+    http::{HeaderName, HeaderValue, Method, Request, Uri, Version},
     std::{
         default::default,
-        io::{
-            BufRead,
-            BufReader,
-            BufWriter,
-            Read,
-            Write
-        },
-        str::FromStr
+        io::{BufRead, BufReader, BufWriter, Read, Write},
+        str::FromStr,
     },
-    tokio::{
-        self,
-        task::JoinSet
-    },
-    tracing::{
-        instrument,
-        log::error,
-        trace
-    }
+    tokio::{self, task::JoinSet},
+    tracing::{instrument, log::error, trace},
 };
 
 pub enum Opts {
     Method(Method),
     Uri(Uri),
     Version(Version),
-    Header((HeaderName, HeaderValue))
+    Header((HeaderName, HeaderValue)),
 }
 
 #[derive(Debug, Default)]
 pub struct IncomingRequest {
-    pub data:   Req,
-    pub reader: Vec<String>
+    pub data: Req,
+    pub reader: Vec<String>,
 }
 
 impl IncomingRequest {
-    const R: std::result::Result<IncomingRequest, anyhow::Error> = ;
-    pub async fn new(stream: impl Read + BufRead) -> Result<Self> {
-        let mut lines: BufReader<R>;
-        let v: Vec<String> = Vec::new();
-        let mut s: String = String::new();
-
+    pub async fn new<T>(stream: T) -> Result<Self>
+    where
+        T: AsyncRead,
+    {
         let mut s = Self {
             reader: Vec::new(),
-            data:   Request::new(vec![])
+            data: Request::new(vec![]),
         };
 
-        self.
+        s.parse().await?;
 
-        Ok(Self { ..default() }) 
-    }
-        
+        Ok(Self { ..default() })
     }
 
     #[instrument(skip())]
-    async fn parse() -> Result<()> {
-        let mut req = UTF8Request::new(&mut )?;
+    async fn parse(&mut self) -> Result<()> {
+        let mut req = UTF8Request::new(self)?;
         trace!("made new UTF8Request");
         let mut opts = req.parse_first_line().await?;
-        let mut opts2: Vec<Opts> = req.parse_headers().await?.into_iter().map(Opts::Header).collect();
+        let mut opts2: Vec<Opts> = req
+            .parse_headers()
+            .await?
+            .into_iter()
+            .map(Opts::Header)
+            .collect();
         trace!("parsed all headers to enum");
         opts.append(&mut opts2);
 
         for i in opts {
             match i {
-                Opts::Uri(uri) => *.data.uri_mut() = uri,
-                Opts::Method(method) => *.data.method_mut() = method,
-                Opts::Version(version) => *.data.version_mut() = version,
+                Opts::Uri(uri) => *self.data.uri_mut() = uri,
+                Opts::Method(method) => *self.data.method_mut() = method,
+                Opts::Version(version) => *self.data.version_mut() = version,
                 Opts::Header((name, value)) => {
-                    .data.headers_mut().insert(name, value);
+                    self.data.headers_mut().insert(name, value);
                 }
             }
         }
@@ -95,8 +72,9 @@ impl IncomingRequest {
 
         Ok(())
     }
+}
 
-  impl From<IncomingRequest> for Request<Vec<String>> {
+impl From<IncomingRequest> for Request<Vec<String>> {
     fn from(val: IncomingRequest) -> Self {
         val.data
     }
@@ -105,7 +83,7 @@ impl IncomingRequest {
 #[derive(Debug)]
 struct UTF8Request {
     first_line: String,
-    rest:       Vec<String>
+    rest: Vec<String>,
 }
 
 impl UTF8Request {
@@ -114,13 +92,13 @@ impl UTF8Request {
         if let Some((first_line, rest)) = s.reader.split_first() {
             let x = Ok(UTF8Request {
                 first_line: first_line.to_string(),
-                rest:       rest.iter().map(|f| f.to_string()).collect()
+                rest: rest.iter().map(|f| f.to_string()).collect(),
             });
             trace!("Successfully split lines to UTF8Request");
             return x;
         } else {
-            error!("error, nearlt empty request");
-            bail!(RequestError::EmptyRequest);
+            error!("error, nearly empty request");
+            bail!(RequestError::EmptyRequest)
         }
     }
 
@@ -130,13 +108,11 @@ impl UTF8Request {
             .first_line
             .split(' ')
             .enumerate()
-            .map(|(i, x)| {
-                match i {
-                    0 => Opts::Method(Method::from_str(x).unwrap()),
-                    1 => Opts::Uri(Uri::from_str(x).unwrap()),
-                    2 => Opts::Version(Version::HTTP_11),
-                    _ => panic!("should be unreachable")
-                }
+            .map(|(i, x)| match i {
+                0 => Opts::Method(Method::from_str(x).unwrap()),
+                1 => Opts::Uri(Uri::from_str(x).unwrap()),
+                2 => Opts::Version(Version::HTTP_11),
+                _ => panic!("should be unreachable"),
             })
             .collect();
 
@@ -179,11 +155,7 @@ mod incoming_request {
     use {
         super::*,
         std::ptr::write_volatile,
-        tokio::net::{
-            tcp::OwnedWriteHalf,
-            TcpListener,
-            TcpStream
-        }
+        tokio::net::{tcp::OwnedWriteHalf, TcpListener, TcpStream},
     };
 
     const REQ_PATH: &str = "test_data/requests/req2.txt";

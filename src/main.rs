@@ -1,3 +1,5 @@
+use http::Request;
+
 use {
     anyhow::Result,
     http::{
@@ -18,7 +20,6 @@ use {
 };
 
 #[tokio::main]
-#[instrument(level = Level::INFO, name = "main_span")]
 async fn main() -> Result<()> {
     init();
 

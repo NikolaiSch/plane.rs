@@ -1,48 +1,21 @@
+use tracing::{event, field::Empty, instrument, span, trace, Level};
+
+use crate::traits::ToHTTP;
+
 use {
     crate::{
         request::IncomingRequest,
-        route::{
-            self,
-            Handle,
-            Route,
-            RouteMap
-        },
-        server_config::{
-            ServerConfig,
-            ServerOpts
-        },
-        Req,
-        RouteHandler
+        route::{self, Handle, Route, RouteMap},
+        server_config::{ServerConfig, ServerOpts},
+        Req, RouteHandler,
     },
     anyhow::Result,
-    http::{
-        Method,
-        Uri
-    },
-    std::{
-        self,
-        borrow::BorrowMut,
-        collections::HashMap,
-        str::FromStr
-    },
+    http::{Method, Uri},
+    std::{self, borrow::BorrowMut, collections::HashMap, str::FromStr},
     tokio::{
         fs::read,
-        net::{
-            TcpListener,
-            TcpStream
-        },
-    tokio::net::{
-        TcpListener,
-        TcpStream
+        net::{TcpListener, TcpStream},
     },
-    tracing::{
-        event,
-        field::*,
-        instrument,
-        trace,
-        Level
-    }
-}
 };
 
 #[derive(Default)]
@@ -50,25 +23,24 @@ pub struct D {}
 impl D {
     fn default() -> Route {
         Route {
-            path:   Uri::default(),
-            method: Method::GET
+            path: Uri::default(),
+            method: Method::GET,
         }
     }
 }
 
 pub struct Plane {
-    pub config:   ServerConfig,
-    pub handlers: RouteMap
+    pub config: ServerConfig,
+    pub handlers: RouteMap,
 }
 
 impl Plane {
     #[instrument(level = Level::DEBUG, skip_all)]
     pub fn board() -> Plane {
         let plane = Plane {
-            config:   ServerConfig::new(),
-            handlers: HashMap::new()
+            config: ServerConfig::new(),
+            handlers: HashMap::new(),
         };
-    }
 
         event!(Level::INFO, "Boarding!");
         plane
@@ -82,7 +54,7 @@ impl Plane {
             ServerOpts::Host(host) => self.config.ip_addr = ServerConfig::parse_ip(host)?,
             ServerOpts::Port(port) => self.config.port = port,
             ServerOpts::Fallback(backup) => {
-                let _ = self.handlers.insert(D::Default(), backup);
+                let _ = self.handlers.insert(D::default(), backup);
             }
         };
 
@@ -100,19 +72,26 @@ impl Plane {
 
     #[instrument(level = "INFO", "Connection Handler", skip_all)]
     async fn conn_handler(&self, conn: TcpStream) -> anyhow::Result<()> {
-        let stream = conn;
+        let (read_stream, mut write_stream) = conn.into_split();
         event!(Level::TRACE, "Successfully split streams");
 
-        let ireq = IncomingRequest::new(conn).await?;
+        let incoming_request = IncomingRequest::new(read_stream).await?;
+
         event!(
             Level::TRACE,
             "Created and parsed the IncomingRequest the Tcp Server"
         );
-        let r = Req::from(route::conn);
-        let h(/* &Request<Vec<String>> */) = self.handlers.get();
-        event!(Level::TRACE, "Created and parsed an IncomingRequest from stream");
+        let parsed_request = Req::from(incoming_request);
 
-        res.write_to_stream(read.borrow_mut()).await?;
+        event!(
+            Level::TRACE,
+            "Created and parsed an IncomingRequest from stream"
+        );
+
+        let mut response = self.handlers.execute_handler(&parsed_request)?;
+
+        response.write_to_stream(&mut write_stream).await?;
+
         event!(Level::INFO, "Successfully Wrote the response to the client");
 
         Ok(())
